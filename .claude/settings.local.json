@@ -3,7 +3,10 @@
     "allow": [
       "Bash(gh auth *)",
       "Bash(git config *)",
-      "Bash(git --version)"
+      "Bash(git --version)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(xargs wc -l)"
     ]
   }
 }
