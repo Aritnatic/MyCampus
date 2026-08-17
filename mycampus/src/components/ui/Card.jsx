@@ -19,7 +19,7 @@ const Card = forwardRef(({
     <div
       ref={ref}
       className={`
-        bg-white rounded-2xl border border-gray-100 shadow-card
+        bg-white rounded-2xl border border-gray-100 shadow-card dark:bg-gray-800/80 dark:border-gray-700/60 dark:shadow-dark-card
         ${paddings[padding]}
         ${hover ? 'transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1' : ''}
         ${interactive ? 'cursor-pointer transform transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover' : ''}

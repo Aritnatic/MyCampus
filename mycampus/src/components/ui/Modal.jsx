@@ -70,14 +70,14 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md', className = '', 
           ref={contentRef}
           tabIndex={-1}
           className={`
-            w-full ${sizes[size]} bg-white rounded-2xl shadow-xl animate-scale-in
+            w-full ${sizes[size]} bg-white rounded-2xl shadow-xl animate-scale-in dark:bg-gray-800 dark:border-gray-700
             ${className}
           `}
         >
           {(title || showClose) && (
             <div className="flex items-start justify-between p-6 border-b border-gray-100">
               {title && (
-                <h2 id="modal-title" className="text-xl font-semibold text-gray-900 pr-4">
+                <h2 id="modal-title" className="text-xl font-semibold text-gray-900 pr-4 dark:text-gray-100">
                   {title}
                 </h2>
               )}

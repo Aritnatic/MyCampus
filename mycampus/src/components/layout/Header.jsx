@@ -2,9 +2,10 @@ import React from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import { Search, Bell, Menu, Sun, Moon, User, LogOut, Settings, Shield, Globe } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Avatar, Badge, Dropdown, DropdownMenu, DropdownItem, DropdownDivider } from '../ui'
+import { Avatar, Badge, Dropdown, DropdownMenu, DropdownItem, DropdownDivider, DropdownLabel } from '../ui'
 import { SearchInput } from '../ui/Input'
 import { currentUser } from '../../data'
+import { useTheme } from '../../context/ThemeContext'
 
 const Header = ({ onMenuClick, sidebarCollapsed }) => {
   const location = useLocation()
@@ -21,10 +22,12 @@ const Header = ({ onMenuClick, sidebarCollapsed }) => {
 
   const unreadCount = mockNotifications.filter(n => n.unread).length
 
+  const { theme, toggleTheme } = useTheme()
+
   return (
     <header
       className={`
-        fixed top-0 right-0 h-16 bg-white/80 backdrop-blur-md border-b border-gray-100
+        fixed top-0 right-0 h-16 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800
         flex items-center justify-between px-4 sm:px-6 z-30
         ${sidebarCollapsed ? 'left-[72px]' : 'left-[260px]'}
       `}
@@ -33,7 +36,7 @@ const Header = ({ onMenuClick, sidebarCollapsed }) => {
       {/* Mobile menu button */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+        className="lg:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         aria-label="Open menu"
       >
         <Menu className="w-6 h-6" />
@@ -51,11 +54,20 @@ const Header = ({ onMenuClick, sidebarCollapsed }) => {
 
       {/* Right side actions */}
       <div className="flex items-center gap-2 lg:gap-3">
+        {/* Theme toggle */}
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+        </button>
+
         {/* Notifications */}
         <Dropdown
           trigger={
             <button
-              className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              className="relative p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
               aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
             >
               <Bell className="w-5 h-5" />
@@ -68,30 +80,30 @@ const Header = ({ onMenuClick, sidebarCollapsed }) => {
           }
         >
           <DropdownMenu className="w-80">
-            <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-900">Notifications</h3>
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
               {unreadCount > 0 && (
-                <button className="text-sm text-primary-600 hover:text-primary-700">Mark all read</button>
+                <button className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">Mark all read</button>
               )}
             </div>
             <div className="max-h-96 overflow-y-auto">
               {mockNotifications.map((n) => (
                 <DropdownItem
                   key={n.id}
-                  className={`px-4 py-3 ${n.unread ? 'bg-primary-50' : ''}`}
+                  className={`px-4 py-3 ${n.unread ? 'bg-primary-50 dark:bg-primary-900/30' : ''}`}
                   onClick={() => {}}
                 >
                   <div className="flex-1">
-                    <p className={`font-medium ${n.unread ? 'text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
-                    <p className="text-sm text-gray-500 mt-0.5">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">{n.time}</p>
+                    <p className={`font-medium ${n.unread ? 'text-gray-900 dark:text-gray-100' : 'text-gray-700 dark:text-gray-300'}`}>{n.title}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{n.message}</p>
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{n.time}</p>
                   </div>
                   {n.unread && <span className="w-2 h-2 bg-primary-600 rounded-full flex-shrink-0 mt-2" />}
                 </DropdownItem>
               ))}
             </div>
-            <div className="p-3 border-t border-gray-100 text-center">
-              <NavLink to="/notifications" className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+            <div className="p-3 border-t border-gray-100 dark:border-gray-700 text-center">
+              <NavLink to="/notifications" className="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 font-medium">
                 View all notifications
               </NavLink>
             </div>
@@ -101,9 +113,9 @@ const Header = ({ onMenuClick, sidebarCollapsed }) => {
         {/* User menu */}
         <Dropdown
           trigger={
-            <button className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 transition-colors">
+            <button className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
               <Avatar name={currentUser.name} size="sm" status="online" />
-              <span className="hidden md:block font-medium text-gray-700">{currentUser.name.split(' ')[0]}</span>
+              <span className="hidden md:block font-medium text-gray-700 dark:text-gray-300">{currentUser.name.split(' ')[0]}</span>
             </button>
           }
         >

@@ -54,7 +54,7 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
       animate={{ width: collapsed ? 72 : 260 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={`
-        fixed left-0 top-0 h-screen bg-white border-r border-gray-100
+        fixed left-0 top-0 h-screen bg-white border-r border-gray-100 dark:bg-gray-900 dark:border-gray-800
         flex flex-col z-40
         ${collapsed ? 'w-[72px]' : 'w-[260px]'}
       `}
@@ -71,12 +71,12 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
             <div className="w-9 h-9 rounded-xl bg-primary-600 flex items-center justify-center">
               <Zap className="w-5 h-5 text-white" />
             </div>
-            <span className="font-display font-bold text-xl text-gray-900">MyCampus</span>
+            <span className="font-display font-bold text-xl text-gray-900 dark:text-gray-100">MyCampus</span>
           </NavLink>
         </motion.div>
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors flex-shrink-0 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-800"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
@@ -97,8 +97,8 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
                 flex items-center gap-3 px-3 py-2.5 rounded-xl
                 transition-all duration-200
                 ${active
-                  ? 'bg-primary-50 text-primary-600 shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}
+                  ? 'bg-primary-50 text-primary-600 shadow-sm dark:bg-primary-900/30 dark:text-primary-400'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'}
                 ${collapsed ? 'justify-center' : ''}
               `}
               title={collapsed ? item.label : undefined}
@@ -128,7 +128,7 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
       </nav>
 
       {/* Divider */}
-      {!collapsed && <div className="mx-3 border-t border-gray-100 my-2" />}
+      {!collapsed && <div className="mx-3 border-t border-gray-100 dark:border-gray-800 my-2" />}
 
       {/* User profile / quick actions */}
       <div className="p-3">
@@ -141,7 +141,7 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
             <Avatar name={user?.name} size="md" status="online" />
             <div className="flex-1 min-w-0">
               <p className="font-medium text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.branch} · Year {user?.year}</p>
+              <p className="text-xs text-gray-500 truncate dark:text-gray-400">{user?.branch} · Year {user?.year}</p>
             </div>
             <Badge variant="success" size="sm" dot>Verified</Badge>
           </div>
@@ -151,14 +151,14 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
           <div className="mt-4 space-y-1">
             <NavLink
               to="/profile"
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             >
               <User className="w-5 h-5" />
               <span className="font-medium">Profile</span>
             </NavLink>
             <NavLink
               to="/notifications"
-              className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors relative"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors relative dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             >
               <Bell className="w-5 h-5" />
               <span className="font-medium">Notifications</span>
@@ -170,8 +170,8 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
 
       {/* Version badge */}
       {!collapsed && (
-        <div className="p-3 border-t border-gray-100">
-          <div className="flex items-center justify-between text-xs text-gray-400">
+        <div className="p-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="flex items-center justify-between text-xs text-gray-400 dark:text-gray-500">
             <span>MyCampus v0.1.0</span>
             <Badge variant="gray" size="sm">Prototype</Badge>
           </div>

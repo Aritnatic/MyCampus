@@ -41,7 +41,8 @@ const Input = forwardRef(({
             transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
             disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
-            ${error ? 'border-red-300 focus:ring-red-500' : ''}
+            dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:ring-primary-400
+            ${error ? 'border-red-300 focus:ring-red-500 dark:border-red-700' : ''}
             ${leftIcon ? 'pl-11' : ''}
             ${(rightIcon || showPasswordToggle) ? 'pr-11' : ''}
           `}
@@ -102,6 +103,7 @@ const SearchInput = forwardRef(({
         w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400
         focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
         transition-all duration-200
+        dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:ring-primary-400
       `}
       {...props}
     />

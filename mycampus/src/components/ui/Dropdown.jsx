@@ -33,7 +33,7 @@ const Dropdown = ({ children, trigger, className = '' }) => {
 const DropdownMenu = ({ children, className = '', ...props }) => (
   <div
     className={`
-      bg-white rounded-xl border border-gray-200 shadow-lg p-1
+      bg-white rounded-xl border border-gray-200 shadow-lg p-1 dark:bg-gray-800 dark:border-gray-700
       ${className}
     `}
     role="menu"
@@ -51,7 +51,7 @@ const DropdownItem = ({ children, onClick, disabled = false, danger = false, ico
     className={`
       w-full px-4 py-2.5 rounded-lg text-sm flex items-center gap-3
       transition-colors
-      ${danger ? 'text-red-600 hover:bg-red-50' : 'text-gray-700 hover:bg-gray-100'}
+      ${danger ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30' : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700'}
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
       ${className}
     `}
@@ -67,7 +67,7 @@ const DropdownDivider = ({ className = '' }) => (
 )
 
 const DropdownLabel = ({ children, className = '' }) => (
-  <p className={`px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide ${className}`}>
+  <p className={`px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide dark:text-gray-400 ${className}`}>
     {children}
   </p>
 )
