@@ -1,0 +1,12 @@
+// Data exports barrel file
+export * from './universities'
+export * from './students'
+export * from './faculty'
+export * from './events'
+export * from './jobs'
+export * from './research'
+export * from './projects'
+export * from './startups'
+export * from './notes'
+export * from './exams'
+export * from './campusMap'
