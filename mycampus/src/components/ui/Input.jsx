@@ -112,4 +112,57 @@ const SearchInput = forwardRef(({
 
 SearchInput.displayName = 'SearchInput'
 
-export { Input, SearchInput }
+// Textarea component
+const Textarea = forwardRef(({
+  label,
+  error,
+  hint,
+  className = '',
+  id: providedId,
+  rows = 4,
+  ...props
+}, ref) => {
+  const generatedId = useId()
+  const id = providedId || generatedId
+
+  return (
+    <div className={`w-full ${className}`}>
+      {label && (
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">
+          {label}
+        </label>
+      )}
+      <textarea
+        ref={ref}
+        id={id}
+        rows={rows}
+        className={`
+          w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-gray-900 placeholder-gray-400
+          transition-all duration-200 resize-none
+          focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+          disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed
+          dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500 dark:focus:ring-primary-400
+          ${error ? 'border-red-300 focus:ring-red-500 dark:border-red-700' : ''}
+        `}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+        {...props}
+      />
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-sm text-red-600 flex items-center gap-1" role="alert">
+          <X className="w-3.5 h-3.5" />
+          {error}
+        </p>
+      )}
+      {hint && !error && (
+        <p id={`${id}-hint`} className="mt-1.5 text-sm text-gray-500">
+          {hint}
+        </p>
+      )}
+    </div>
+  )
+})
+
+Textarea.displayName = 'Textarea'
+
+export { Input, SearchInput, Textarea }

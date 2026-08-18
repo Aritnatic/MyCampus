@@ -72,4 +72,23 @@ const DropdownLabel = ({ children, className = '' }) => (
   </p>
 )
 
-export { Dropdown, DropdownMenu, DropdownItem, DropdownDivider, DropdownLabel }
+// DropdownTrigger - wrapper for the trigger element
+const DropdownTrigger = ({ children, className = '', ...props }) => (
+  <button
+    type="button"
+    className={`
+      inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm font-medium
+      hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+      transition-all duration-200
+      dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:hover:bg-gray-700
+      ${className}
+    `}
+    {...props}
+  >
+    {children}
+  </button>
+)
+
+DropdownTrigger.displayName = 'DropdownTrigger'
+
+export { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownDivider, DropdownLabel }

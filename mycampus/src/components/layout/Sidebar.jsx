@@ -40,6 +40,14 @@ const navigation = [
   { key: 'timetable', label: 'Exams & Timetable', icon: Clock, path: '/timetable', badge: null },
 ]
 
+const adminNavigation = [
+  { key: 'admin', label: 'Admin Dashboard', icon: Shield, path: '/admin', badge: null },
+  { key: 'admin-notices', label: 'Notices & Events', icon: FileText, path: '/admin/notices-events', badge: null },
+  { key: 'admin-exams', label: 'Exams & Results', icon: Clock, path: '/admin/exams-results', badge: null },
+  { key: 'admin-placements', label: 'Placements', icon: Briefcase, path: '/admin/placements', badge: null },
+  { key: 'admin-settings', label: 'Settings', icon: Settings, path: '/admin/settings', badge: null },
+]
+
 const bottomNav = [
   { key: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
   { key: 'logout', label: 'Logout', icon: LogOut, path: '/logout' },
@@ -125,6 +133,56 @@ const Sidebar = ({ collapsed, onToggleCollapse, user }) => {
             </NavLink>
           )
         })}
+
+        {/* Admin Navigation (conditional) */}
+        {user?.isAdmin && (
+          <>
+            <div className="mx-0 my-2 border-t border-gray-100 dark:border-gray-800" />
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              {collapsed ? 'A' : 'Admin Panel'}
+            </p>
+            {adminNavigation.map((item) => {
+              const isActive = location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path))
+              const Icon = item.icon
+
+              return (
+                <NavLink
+                  key={item.key}
+                  to={item.path}
+                  className={({ isActive: active }) => `
+                    flex items-center gap-3 px-3 py-2.5 rounded-xl
+                    transition-all duration-200
+                    ${active
+                      ? 'bg-gray-900 text-white shadow-sm dark:bg-gray-100 dark:text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'}
+                    ${collapsed ? 'justify-center' : ''}
+                  `}
+                  title={collapsed ? item.label : undefined}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                  <AnimatePresence mode="wait">
+                    {!collapsed && (
+                      <motion.span
+                        key="label"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -10 }}
+                        transition={{ duration: 0.15 }}
+                        className="font-medium truncate"
+                      >
+                        {item.label}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                  {item.badge && !collapsed && (
+                    <Badge variant="primary" size="sm">{item.badge}</Badge>
+                  )}
+                </NavLink>
+              )
+            })}
+          </>
+        )}
       </nav>
 
       {/* Divider */}

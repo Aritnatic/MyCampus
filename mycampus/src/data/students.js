@@ -192,7 +192,10 @@ export const students = [
   }
 ]
 
-export const currentUser = students[0] // Aritra as logged-in user
+export const currentUser = {
+  ...students[0],
+  isAdmin: true, // Enable admin access for demo
+}
 
 export const getStudent = (id) => students.find(s => s.id === id)
 export const getStudentsByUniversity = (uniId) => students.filter(s => s.university === uniId)
