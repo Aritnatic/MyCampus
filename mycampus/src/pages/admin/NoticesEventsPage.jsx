@@ -8,8 +8,8 @@ import {
 import { currentUser, getAdminNotices, getAdminEvents, getAdminUniversity } from '../../data'
 import { getEvent } from '../../data/events'
 import { formatDate, getRelativeDate } from '../../utils/format'
-import AdminTable from '../../components/admin/AdminTable'
-import { AdminTabs, AdminTabsContent } from '../../components/admin/AdminTabs'
+import { AdminTable, createColumn } from '../../components/admin/AdminTable'
+import { AdminTabs, TabPanel } from '../../components/admin/AdminTabs'
 import { AdminBadge, AdminStatusDot } from '../../components/admin/AdminBadge'
 import { AdminModal, AdminInput, AdminTextarea, AdminSelect, AdminButton } from '../../components/admin/AdminForm'
 
@@ -58,17 +58,17 @@ const NoticesEventsPage = () => {
 
   // Notice columns
   const noticeColumns = [
-    { key: 'title', label: 'Title', width: '35%', render: (val, row) => (
+    createColumn({ key: 'title', header: 'Title', width: '35%', render: (val, row) => (
       <div>
         <p className="font-medium text-gray-900 truncate max-w-xs">{row.title}</p>
         <p className="text-xs text-gray-500 truncate max-w-xs">{row.body.slice(0, 80)}...</p>
       </div>
-    )},
-    { key: 'category', label: 'Category', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'priority', label: 'Priority', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'status', label: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'publishedAt', label: 'Published', render: (val) => val ? formatDate(val) : '—' },
-    { key: 'actions', label: 'Actions', width: '150px', render: (_, row) => (
+    )}),
+    createColumn({ key: 'category', header: 'Category', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'priority', header: 'Priority', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'status', header: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'publishedAt', header: 'Published', render: (val) => val ? formatDate(val) : '—' }),
+    createColumn({ key: 'actions', header: 'Actions', width: '150px', render: (_, row) => (
       <div className="flex items-center gap-2">
         <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="View" aria-label="View notice">
           <Eye className="w-4 h-4" />
@@ -80,22 +80,22 @@ const NoticesEventsPage = () => {
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-    )},
+    )}),
   ]
 
   // Event columns
   const eventColumns = [
-    { key: 'title', label: 'Event', width: '30%', render: (val, row) => (
+    createColumn({ key: 'title', header: 'Event', width: '30%', render: (val, row) => (
       <div>
         <p className="font-medium text-gray-900 truncate max-w-xs">{row.title}</p>
         <p className="text-xs text-gray-500 truncate max-w-xs">{row.organizer}</p>
       </div>
-    )},
-    { key: 'type', label: 'Type', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'visibility', label: 'Visibility', render: (val) => <span className="text-sm text-gray-600 capitalize">{val}</span> },
-    { key: 'approvalStatus', label: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'startDate', label: 'Date', render: (val) => formatDate(val) },
-    { key: 'actions', label: 'Actions', width: '150px', render: (_, row) => (
+    )}),
+    createColumn({ key: 'type', header: 'Type', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'visibility', header: 'Visibility', render: (val) => <span className="text-sm text-gray-600 capitalize">{val}</span> }),
+    createColumn({ key: 'approvalStatus', header: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'startDate', header: 'Date', render: (val) => formatDate(val) }),
+    createColumn({ key: 'actions', header: 'Actions', width: '150px', render: (_, row) => (
       <div className="flex items-center gap-2">
         <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="View" aria-label="View event">
           <Eye className="w-4 h-4" />
@@ -111,7 +111,7 @@ const NoticesEventsPage = () => {
           </>
         )}
       </div>
-    )},
+    )}),
   ]
 
   const handleEditNotice = (notice) => {
@@ -152,8 +152,8 @@ const NoticesEventsPage = () => {
   }
 
   const tabs = [
-    { value: 'notices', label: 'Notices', icon: FileText, badge: notices.length },
-    { value: 'events', label: 'Events', icon: Calendar, badge: events.length },
+    { id: 'notices', label: 'Notices', icon: FileText, badge: notices.length },
+    { id: 'events', label: 'Events', icon: Calendar, badge: events.length },
   ]
 
   return (
@@ -173,10 +173,11 @@ const NoticesEventsPage = () => {
       </div>
 
       {/* Tabs */}
-      <AdminTabs tabs={tabs} activeTab="notices" onChange={() => {}} />
+      <AdminTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {/* Notices Tab */}
-      <div className="space-y-4">
+      <TabPanel id="notices" activeTab={activeTab}>
+        <div className="space-y-4">
         {/* Filter/Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
@@ -230,6 +231,65 @@ const NoticesEventsPage = () => {
           </div>
         </div>
       </div>
+    </TabPanel>
+
+    {/* Events Tab */}
+    <TabPanel id="events" activeTab={activeTab}>
+      <div className="space-y-4">
+        {/* Filter/Search */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="search"
+              placeholder="Search events..."
+              value={eventsSearch}
+              onChange={(e) => setEventsSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+            />
+          </div>
+          <AdminSelect
+            value={eventsFilter}
+            onChange={(e) => setEventsFilter(e.target.value)}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'rejected', label: 'Rejected' },
+            ]}
+            className="w-full sm:w-48"
+          />
+        </div>
+
+        {/* Events Table */}
+        <AdminTable
+          columns={eventColumns}
+          data={filteredEvents}
+          keyField="id"
+          emptyMessage="No events found"
+        />
+
+        {/* Stats row */}
+        <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Total</p>
+            <p className="text-2xl font-bold text-gray-900">{events.length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Approved</p>
+            <p className="text-2xl font-bold text-green-600">{events.filter(e => e.approvalStatus === 'approved').length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Pending</p>
+            <p className="text-2xl font-bold text-amber-600">{events.filter(e => e.approvalStatus === 'pending').length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Rejected</p>
+            <p className="text-2xl font-bold text-red-600">{events.filter(e => e.approvalStatus === 'rejected').length}</p>
+          </div>
+        </div>
+      </div>
+    </TabPanel>
 
       {/* Notice Modal */}
       <AdminModal

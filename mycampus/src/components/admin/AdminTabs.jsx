@@ -1,47 +1,59 @@
 import React from 'react'
-import { motion } from 'framer-motion'
 
-// Minimal tab component for admin pages - underline style, no cards
-const AdminTabs = ({ tabs, activeTab, onChange, className = '' }) => {
+// Minimal underline tabs - no rounded cards, clean lines
+export function AdminTabs({
+  tabs = [],
+  activeTab,
+  onChange,
+  className = '',
+  variant = 'underline', // 'underline' | 'bordered'
+}) {
+  if (!tabs.length) return null
+
   return (
-    <div className={`border-b border-gray-200 ${className}`}>
-      <nav className="flex gap-1" role="tablist" aria-label="Admin sections">
-        {tabs.map((tab) => (
-          <button
-            key={tab.value}
-            role="tab"
-            aria-selected={activeTab === tab.value}
-            aria-controls={`panel-${tab.value}`}
-            id={`tab-${tab.value}`}
-            onClick={() => onChange(tab.value)}
-            className={`
-              flex items-center gap-2 px-4 py-3 text-sm font-medium
-              border-b-2 transition-all duration-200
-              ${activeTab === tab.value
-                ? 'border-gray-900 text-gray-900'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-            `}
-          >
-            {tab.icon && <tab.icon className="w-4 h-4" />}
+    <div className={`admin-tabs ${className}`} role="tablist">
+      {tabs.map((tab) => (
+        <button
+          key={tab.id}
+          role="tab"
+          aria-selected={activeTab === tab.id}
+          aria-controls={`${tab.id}-panel`}
+          id={`${tab.id}-tab`}
+          onClick={() => onChange?.(tab.id)}
+          className={`
+            admin-tab
+            ${activeTab === tab.id ? 'admin-tab-active' : ''}
+            ${variant === 'bordered' ? 'admin-tab-bordered' : 'admin-tab-underline'}
+            ${tab.disabled ? 'admin-tab-disabled' : ''}
+          `}
+          disabled={tab.disabled}
+        >
+          <span className="flex items-center gap-1.5">
+            {tab.icon && <span className="w-4 h-4">{tab.icon}</span>}
             {tab.label}
-            {tab.badge !== undefined && tab.badge !== null && (
-              <span className="px-2 py-0.5 text-[10px] font-medium bg-gray-100 text-gray-600">
+            {tab.badge && (
+              <span className={`admin-badge admin-badge-${tab.badgeColor || 'info'} text-xs px-1.5 py-0.5`}>
                 {tab.badge}
               </span>
             )}
-          </button>
-        ))}
-      </nav>
+          </span>
+        </button>
+      ))}
     </div>
   )
 }
 
-const AdminTabsContent = ({ activeTab, tabs, children, className = '' }) => {
+// Tab panel wrapper
+export function TabPanel({ children, id, activeTab, className = '' }) {
+  if (activeTab !== id) return null
   return (
-    <div className={className} role="tabpanel" aria-labelledby={`tab-${activeTab}`}>
+    <div
+      id={`${id}-panel`}
+      role="tabpanel"
+      aria-labelledby={`${id}-tab`}
+      className={`admin-tab-panel animate-in ${className}`}
+    >
       {children}
     </div>
   )
 }
-
-export { AdminTabs, AdminTabsContent }

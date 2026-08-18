@@ -7,8 +7,8 @@ import {
 import { currentUser, getAdminExams, getAdminResults, getAdminUniversity } from '../../data'
 import { getExamsByBranch } from '../../data/exams'
 import { formatDate, getRelativeDate } from '../../utils/format'
-import AdminTable from '../../components/admin/AdminTable'
-import { AdminTabs, AdminTabsContent } from '../../components/admin/AdminTabs'
+import { AdminTable, createColumn } from '../../components/admin/AdminTable'
+import { AdminTabs, TabPanel } from '../../components/admin/AdminTabs'
 import { AdminBadge, AdminStatusDot } from '../../components/admin/AdminBadge'
 import { AdminModal, AdminInput, AdminTextarea, AdminSelect, AdminButton } from '../../components/admin/AdminForm'
 
@@ -19,6 +19,8 @@ const ExamsResultsPage = () => {
   const university = getAdminUniversity(currentUser.university)
   const exams = getAdminExams(currentUser.university)
   const results = getAdminResults(currentUser.university)
+
+  const [activeTab, setActiveTab] = useState('exams')
 
   // Exams state
   const [examsFilter, setExamsFilter] = useState('all')
@@ -67,16 +69,16 @@ const ExamsResultsPage = () => {
 
   // Exam columns
   const examColumns = [
-    { key: 'subjectCode', label: 'Code', width: '100px' },
-    { key: 'subjectName', label: 'Subject', width: '25%', render: (val) => <p className="font-medium text-gray-900">{val}</p> },
-    { key: 'branch', label: 'Branch', width: '80px', render: (val) => <span className="text-sm font-medium text-gray-700">{val}</span> },
-    { key: 'semester', label: 'Sem', width: '60px', render: (val) => <span className="text-sm text-gray-600">{val}</span> },
-    { key: 'date', label: 'Date', width: '120px', render: (val) => formatDate(val) },
-    { key: 'time', label: 'Time', width: '140px', render: (_, row) => `${row.startTime} - ${row.endTime}` },
-    { key: 'room', label: 'Room', width: '150px' },
-    { key: 'type', label: 'Type', render: (val) => <AdminBadge status={val.toLowerCase()} size="xs" /> },
-    { key: 'status', label: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'actions', label: 'Actions', width: '120px', render: (_, row) => (
+    createColumn({ key: 'subjectCode', header: 'Code', width: '100px' }),
+    createColumn({ key: 'subjectName', header: 'Subject', width: '25%', render: (val) => <p className="font-medium text-gray-900">{val}</p> }),
+    createColumn({ key: 'branch', header: 'Branch', width: '80px', render: (val) => <span className="text-sm font-medium text-gray-700">{val}</span> }),
+    createColumn({ key: 'semester', header: 'Sem', width: '60px', render: (val) => <span className="text-sm text-gray-600">{val}</span> }),
+    createColumn({ key: 'date', header: 'Date', width: '120px', render: (val) => formatDate(val) }),
+    createColumn({ key: 'time', header: 'Time', width: '140px', render: (_, row) => `${row.startTime} - ${row.endTime}` }),
+    createColumn({ key: 'room', header: 'Room', width: '150px' }),
+    createColumn({ key: 'type', header: 'Type', render: (val) => <AdminBadge status={val.toLowerCase()} size="xs" /> }),
+    createColumn({ key: 'status', header: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'actions', header: 'Actions', width: '120px', render: (_, row) => (
       <div className="flex items-center gap-2">
         <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="Edit">
           <Edit className="w-4 h-4" />
@@ -85,19 +87,19 @@ const ExamsResultsPage = () => {
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
-    )},
+    )}),
   ]
 
   // Result columns
   const resultColumns = [
-    { key: 'examName', label: 'Exam', width: '30%', render: (val) => <p className="font-medium text-gray-900 truncate max-w-xs">{val}</p> },
-    { key: 'branch', label: 'Branch', width: '80px', render: (val) => <span className="text-sm font-medium text-gray-700">{val}</span> },
-    { key: 'semester', label: 'Sem', width: '60px', render: (val) => <span className="text-sm text-gray-600">{val}</span> },
-    { key: 'announcedDate', label: 'Announced', width: '120px', render: (val) => formatDate(val) },
-    { key: 'status', label: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> },
-    { key: 'sgpa', label: 'SGPA', width: '80px', render: (val) => <span className="font-medium text-gray-900">{val}</span> },
-    { key: 'cgpa', label: 'CGPA', width: '80px', render: (val) => <span className="font-medium text-gray-900">{val}</span> },
-    { key: 'actions', label: 'Actions', width: '120px', render: (_, row) => (
+    createColumn({ key: 'examName', header: 'Exam', width: '30%', render: (val) => <p className="font-medium text-gray-900 truncate max-w-xs">{val}</p> }),
+    createColumn({ key: 'branch', header: 'Branch', width: '80px', render: (val) => <span className="text-sm font-medium text-gray-700">{val}</span> }),
+    createColumn({ key: 'semester', header: 'Sem', width: '60px', render: (val) => <span className="text-sm text-gray-600">{val}</span> }),
+    createColumn({ key: 'announcedDate', header: 'Announced', width: '120px', render: (val) => formatDate(val) }),
+    createColumn({ key: 'status', header: 'Status', render: (val) => <AdminBadge status={val} size="xs" /> }),
+    createColumn({ key: 'sgpa', header: 'SGPA', width: '80px', render: (val) => <span className="font-medium text-gray-900">{val}</span> }),
+    createColumn({ key: 'cgpa', header: 'CGPA', width: '80px', render: (val) => <span className="font-medium text-gray-900">{val}</span> }),
+    createColumn({ key: 'actions', header: 'Actions', width: '120px', render: (_, row) => (
       <div className="flex items-center gap-2">
         <button className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors" title="View">
           <Eye className="w-4 h-4" />
@@ -111,7 +113,7 @@ const ExamsResultsPage = () => {
           </button>
         )}
       </div>
-    )},
+    )}),
   ]
 
   const handleNewExam = () => {
@@ -139,8 +141,8 @@ const ExamsResultsPage = () => {
   }
 
   const tabs = [
-    { value: 'exams', label: 'Exam Schedule', icon: Calendar, badge: exams.length },
-    { value: 'results', label: 'Results', icon: FileText, badge: results.length },
+    { id: 'exams', label: 'Exam Schedule', icon: Calendar, badge: exams.length },
+    { id: 'results', label: 'Results', icon: FileText, badge: results.length },
   ]
 
   return (
@@ -160,10 +162,11 @@ const ExamsResultsPage = () => {
       </div>
 
       {/* Tabs */}
-      <AdminTabs tabs={tabs} activeTab="exams" onChange={() => {}} />
+      <AdminTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
       {/* Exams Tab */}
-      <div className="space-y-4">
+      <TabPanel id="exams" activeTab={activeTab}>
+        <div className="space-y-4">
         {/* Filter/Search */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
@@ -223,6 +226,74 @@ const ExamsResultsPage = () => {
           </div>
         </div>
       </div>
+    </TabPanel>
+
+    {/* Results Tab */}
+    <TabPanel id="results" activeTab={activeTab}>
+      <div className="space-y-4">
+        {/* Filter/Search */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="search"
+              placeholder="Search results..."
+              value={resultsSearch}
+              onChange={(e) => setResultsSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+            />
+          </div>
+          <AdminSelect
+            value={resultsBranch}
+            onChange={(e) => setResultsBranch(e.target.value)}
+            options={[{ value: 'all', label: 'All Branches' }, ...branches.map(b => ({ value: b, label: b }))]}
+            className="w-full sm:w-40"
+          />
+          <AdminSelect
+            value={resultsFilter}
+            onChange={(e) => setResultsFilter(e.target.value)}
+            options={[
+              { value: 'all', label: 'All Status' },
+              { value: 'published', label: 'Published' },
+              { value: 'draft', label: 'Draft' },
+            ]}
+            className="w-full sm:w-40"
+          />
+        </div>
+
+        {/* Results Table */}
+        <AdminTable
+          columns={resultColumns}
+          data={filteredResults}
+          keyField="id"
+          emptyMessage="No results found"
+        />
+
+        {/* Quick stats */}
+        <div className="grid grid-cols-4 gap-4 text-center">
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Total Results</p>
+            <p className="text-2xl font-bold text-gray-900">{results.length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Published</p>
+            <p className="text-2xl font-bold text-green-600">{results.filter(r => r.status === 'published').length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Draft</p>
+            <p className="text-2xl font-bold text-gray-500">{results.filter(r => r.status === 'draft').length}</p>
+          </div>
+          <div className="p-4 bg-gray-50">
+            <p className="text-sm text-gray-500">Avg CGPA</p>
+            <p className="text-2xl font-bold text-blue-600">
+              {results.length > 0
+                ? (results.reduce((acc, r) => acc + (r.cgpa || 0), 0) / results.length).toFixed(2)
+                : '—'}
+            </p>
+          </div>
+        </div>
+      </div>
+    </TabPanel>
 
       {/* Exam Modal */}
       <AdminModal
@@ -327,11 +398,5 @@ const ExamsResultsPage = () => {
     </div>
   )
 }
-
-// Need to import Search icon
-import { Search } from 'lucide-react'
-
-// Need to import Search icon
-import { Search } from 'lucide-react'
 
 export default ExamsResultsPage

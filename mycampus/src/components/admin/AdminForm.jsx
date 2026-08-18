@@ -1,194 +1,295 @@
-import React from 'react'
-import { motion } from 'framer-motion'
-import { X } from 'lucide-react'
+import React, { forwardRef } from 'react'
 
-// Minimal modal form for admin pages
-const AdminModal = ({ isOpen, onClose, title, children, size = 'md', className = '' }) => {
+// Modal component - minimal, flat, no shadows
+export function AdminModal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  className = '',
+  size = 'md', // 'sm' | 'md' | 'lg' | 'xl' | 'full'
+  showClose = true,
+}) {
   if (!isOpen) return null
 
-  const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-full mx-4',
+  const sizeClasses = {
+    sm: 'w-full max-w-md',
+    md: 'w-full max-w-lg',
+    lg: 'w-full max-w-2xl',
+    xl: 'w-full max-w-4xl',
+    full: 'w-full max-w-[90vw]',
+  }
+
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) onClose?.()
+  }
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Escape') onClose?.()
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 overflow-y-auto"
-      onClick={onClose}
+    <div
+      className="admin-modal-overlay"
+      onClick={handleOverlayClick}
+      onKeyDown={handleKeyDown}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
     >
-      <div className="flex min-h-full items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className={`w-full ${sizes[size]} bg-white border border-gray-200`}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+      <div className={`admin-modal ${sizeClasses[size]} ${className}`} style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+        <div className="admin-modal-header">
+          <h2 id="modal-title" className="admin-modal-title">{title}</h2>
+          {showClose && (
             <button
+              type="button"
               onClick={onClose}
-              className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
+              className="admin-btn-ghost p-1.5 rounded hover:bg-admin-100"
               aria-label="Close modal"
             >
-              <X className="w-5 h-5" />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-6 overflow-y-auto max-h-[70vh]">
-            {children}
-          </div>
-
-          {/* Footer - optional, children can include their own */}
-        </motion.div>
+          )}
+        </div>
+        <div className="admin-modal-body">
+          {children}
+        </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
-// Form field components
-const AdminInput = ({ label, error, hint, required, className = '', ...props }) => (
-  <div className={className}>
-    {label && (
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-    )}
-    <input
-      className={`
-        w-full px-3 py-2 rounded border
-        bg-white text-gray-900 placeholder-gray-400
-        focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900
-        disabled:bg-gray-50 disabled:text-gray-500
-        ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-        transition-colors
-      `}
-      aria-invalid={error ? 'true' : 'false'}
-      aria-describedby={error ? `${props.id}-error` : hint ? `${props.id}-hint` : undefined}
-      {...props}
-    />
-    {error && (
-      <p id={`${props.id}-error`} className="mt-1 text-sm text-red-600" role="alert">
-        {error}
-      </p>
-    )}
-    {hint && !error && (
-      <p id={`${props.id}-hint`} className="mt-1 text-sm text-gray-500">
-        {hint}
-      </p>
-    )}
-  </div>
-)
+// Input component
+export const AdminInput = forwardRef(function AdminInput({
+  label,
+  error,
+  hint,
+  className = '',
+  id,
+  ...props
+}, ref) {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+  const errorId = error ? `${inputId}-error` : undefined
+  const hintId = hint ? `${inputId}-hint` : undefined
 
-const AdminTextarea = ({ label, error, hint, required, className = '', ...props }) => (
-  <div className={className}>
-    {label && (
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-    )}
-    <textarea
-      className={`
-        w-full px-3 py-2 rounded border resize-none
-        bg-white text-gray-900 placeholder-gray-400
-        focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900
-        disabled:bg-gray-50 disabled:text-gray-500
-        ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-        transition-colors
-      `}
-      aria-invalid={error ? 'true' : 'false'}
-      aria-describedby={error ? `${props.id}-error` : hint ? `${props.id}-hint` : undefined}
-      {...props}
-    />
-    {error && (
-      <p id={`${props.id}-error`} className="mt-1 text-sm text-red-600" role="alert">
-        {error}
-      </p>
-    )}
-    {hint && !error && (
-      <p id={`${props.id}-hint`} className="mt-1 text-sm text-gray-500">
-        {hint}
-      </p>
-    )}
-  </div>
-)
+  return (
+    <div className="admin-form-group">
+      {label && <label htmlFor={inputId} className="admin-label">{label}</label>}
+      <input
+        ref={ref}
+        id={inputId}
+        className={`admin-input ${error ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' : ''} ${className}`}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={`${errorId || ''} ${hintId || ''}`.trim() || undefined}
+        {...props}
+      />
+      {error && <p id={errorId} className="text-sm text-danger-600 mt-1" role="alert">{error}</p>}
+      {hint && !error && <p id={hintId} className="text-sm text-admin-500 mt-1">{hint}</p>}
+    </div>
+  )
+})
 
-const AdminSelect = ({ label, error, hint, required, options, className = '', ...props }) => (
-  <div className={className}>
-    {label && (
-      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-    )}
-    <select
-      className={`
-        w-full px-3 py-2 rounded border appearance-none
-        bg-white text-gray-900
-        focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900
-        disabled:bg-gray-50 disabled:text-gray-500
-        ${error ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'border-gray-300'}
-        transition-colors
-      `}
-      aria-invalid={error ? 'true' : 'false'}
-      aria-describedby={error ? `${props.id}-error` : hint ? `${props.id}-hint` : undefined}
-      {...props}
-    >
-      {options.map((opt) => (
-        <option key={opt.value} value={opt.value}>
-          {opt.label}
-        </option>
-      ))}
-    </select>
-    {error && (
-      <p id={`${props.id}-error`} className="mt-1 text-sm text-red-600" role="alert">
-        {error}
-      </p>
-    )}
-    {hint && !error && (
-      <p id={`${props.id}-hint`} className="mt-1 text-sm text-gray-500">
-        {hint}
-      </p>
-    )}
-  </div>
-)
+AdminInput.displayName = 'AdminInput'
 
-// Button variants
-const AdminButton = ({ variant = 'primary', size = 'md', className = '', children, ...props }) => {
-  const variants = {
-    primary: 'bg-gray-900 text-white hover:bg-gray-800 active:bg-gray-950',
-    secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 active:bg-gray-100',
-    ghost: 'bg-transparent text-gray-700 hover:bg-gray-100 active:bg-gray-200',
-    danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
-    outline: 'bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 active:bg-gray-100',
+// Textarea component
+export const AdminTextarea = forwardRef(function AdminTextarea({
+  label,
+  error,
+  hint,
+  className = '',
+  rows = 4,
+  id,
+  ...props
+}, ref) {
+  const inputId = id || label?.toLowerCase().replace(/\s+/g, '-')
+  const errorId = error ? `${inputId}-error` : undefined
+  const hintId = hint ? `${inputId}-hint` : undefined
+
+  return (
+    <div className="admin-form-group">
+      {label && <label htmlFor={inputId} className="admin-label">{label}</label>}
+      <textarea
+        ref={ref}
+        id={inputId}
+        rows={rows}
+        className={`admin-input ${error ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' : ''} ${className}`}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={`${errorId || ''} ${hintId || ''}`.trim() || undefined}
+        {...props}
+      />
+      {error && <p id={errorId} className="text-sm text-danger-600 mt-1" role="alert">{error}</p>}
+      {hint && !error && <p id={hintId} className="text-sm text-admin-500 mt-1">{hint}</p>}
+    </div>
+  )
+})
+
+AdminTextarea.displayName = 'AdminTextarea'
+
+// Select component
+export const AdminSelect = forwardRef(function AdminSelect({
+  label,
+  error,
+  hint,
+  options = [],
+  placeholder = 'Select...',
+  className = '',
+  id,
+  ...props
+}, ref) {
+  const selectId = id || label?.toLowerCase().replace(/\s+/g, '-')
+  const errorId = error ? `${selectId}-error` : undefined
+  const hintId = hint ? `${selectId}-hint` : undefined
+
+  return (
+    <div className="admin-form-group">
+      {label && <label htmlFor={selectId} className="admin-label">{label}</label>}
+      <select
+        ref={ref}
+        id={selectId}
+        className={`admin-input ${error ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500' : ''} ${className}`}
+        aria-invalid={error ? 'true' : 'false'}
+        aria-describedby={`${errorId || ''} ${hintId || ''}`.trim() || undefined}
+        {...props}
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      {error && <p id={errorId} className="text-sm text-danger-600 mt-1" role="alert">{error}</p>}
+      {hint && !error && <p id={hintId} className="text-sm text-admin-500 mt-1">{hint}</p>}
+    </div>
+  )
+})
+
+AdminSelect.displayName = 'AdminSelect'
+
+// Checkbox component
+export const AdminCheckbox = forwardRef(function AdminCheckbox({
+  label,
+  className = '',
+  id,
+  ...props
+}, ref) {
+  const checkboxId = id || label?.toLowerCase().replace(/\s+/g, '-')
+
+  return (
+    <div className="flex items-start gap-3">
+      <input
+        ref={ref}
+        type="checkbox"
+        id={checkboxId}
+        className="mt-1 w-4 h-4 rounded border-admin-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0"
+        {...props}
+      />
+      {label && <label htmlFor={checkboxId} className="text-sm text-admin-700 cursor-pointer">{label}</label>}
+    </div>
+  )
+})
+
+AdminCheckbox.displayName = 'AdminCheckbox'
+
+// Button component - re-export with admin prefix
+export const AdminButton = forwardRef(function AdminButton({
+  variant = 'primary', // 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline'
+  size = 'md', // 'sm' | 'md' | 'lg'
+  className = '',
+  children,
+  ...props
+}, ref) {
+  const variantClasses = {
+    primary: 'admin-btn-primary',
+    secondary: 'admin-btn-secondary',
+    ghost: 'admin-btn-ghost',
+    danger: 'admin-btn-danger',
+    outline: 'admin-btn-outline',
   }
 
-  const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm',
-    lg: 'px-6 py-3 text-base',
+  const sizeClasses = {
+    sm: 'px-2.5 py-1.5 text-sm',
+    md: 'px-3 py-2 text-sm',
+    lg: 'px-4 py-2.5 text-base',
   }
 
   return (
     <button
-      className={`
-        inline-flex items-center justify-center gap-2 font-medium rounded
-        focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2
-        disabled:opacity-50 disabled:cursor-not-allowed transition-colors
-        ${variants[variant]} ${sizes[size]} ${className}
-      `}
+      ref={ref}
+      className={`${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
       {...props}
     >
       {children}
     </button>
   )
+})
+
+AdminButton.displayName = 'AdminButton'
+
+// Form row layout helpers
+export function FormRow({ children, className = '', cols = 2 }) {
+  return (
+    <div className={`admin-form-row-${cols} ${className}`}>
+      {children}
+    </div>
+  )
 }
 
-export { AdminModal, AdminInput, AdminTextarea, AdminSelect, AdminButton }
+export function FormSection({ title, children, className = '', description }) {
+  return (
+    <div className={`admin-section ${className}`}>
+      {title && (
+        <div className="mb-4">
+          <h3 className="admin-section-title">{title}</h3>
+          {description && <p className="text-sm text-admin-500 mt-1">{description}</p>}
+        </div>
+      )}
+      {children}
+    </div>
+  )
+}
+
+// Confirmation dialog
+export function AdminConfirmDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  title = 'Confirm Action',
+  message = 'Are you sure you want to proceed?',
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  variant = 'danger', // 'danger' | 'primary'
+  loading = false,
+}) {
+  return (
+    <AdminModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      size="sm"
+    >
+      <div className="space-y-4">
+        <p className="text-admin-700">{message}</p>
+        <div className="admin-modal-footer">
+          <AdminButton
+            variant="ghost"
+            onClick={onClose}
+            disabled={loading}
+          >
+            {cancelText}
+          </AdminButton>
+          <AdminButton
+            variant={variant}
+            onClick={onConfirm}
+            disabled={loading}
+            loading={loading}
+          >
+            {confirmText}
+          </AdminButton>
+        </div>
+      </div>
+    </AdminModal>
+  )
+}
