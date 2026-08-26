@@ -20,13 +20,15 @@ function App() {
         <Route path="/admin/login" element={<LoginPage />} />
 
         {/* Protected admin routes */}
-        <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/notices-events" element={<NoticesEventsPage />} />
-          <Route path="/admin/exams-results" element={<ExamsResultsPage />} />
-          <Route path="/admin/placements" element={<PlacementsPage />} />
-          <Route path="/admin/settings" element={<SettingsPage />} />
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AdminLayout />}>
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/notices-events" element={<NoticesEventsPage />} />
+            <Route path="/admin/exams-results" element={<ExamsResultsPage />} />
+            <Route path="/admin/placements" element={<PlacementsPage />} />
+            <Route path="/admin/settings" element={<SettingsPage />} />
+          </Route>
         </Route>
 
         <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
