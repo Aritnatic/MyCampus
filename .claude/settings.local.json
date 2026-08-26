@@ -6,7 +6,8 @@
       "Bash(git --version)",
       "Bash(npm install *)",
       "Bash(npm run *)",
-      "Bash(xargs wc -l)"
+      "Bash(xargs wc -l)",
+      "Bash(curl -s http://localhost:5173)"
     ]
   }
 }
