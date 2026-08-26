@@ -1,13 +1,13 @@
 import React, { useState } from 'react'
-import { Outlet, NavLink, useLocation } from 'react-router-dom'
+import { Outlet } from 'react-router-dom'
 import { AdminSidebar } from './AdminSidebar'
 import { AdminHeader } from './AdminHeader'
-import { currentAdmin } from '../../data/admin'
+import { useAuth } from '../../context/AuthContext'
 
 export function AdminLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
-  const location = useLocation()
+  const { admin } = useAuth()
 
   return (
     <div className="min-h-screen bg-white lg:flex">
@@ -25,7 +25,6 @@ export function AdminLayout() {
         collapsed={sidebarCollapsed}
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
-        currentPath={location.pathname}
       />
 
       {/* Main Content */}
@@ -35,7 +34,6 @@ export function AdminLayout() {
           onMenuClick={() => setMobileSidebarOpen(true)}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
-          admin={currentAdmin}
         />
 
         {/* Page Content */}

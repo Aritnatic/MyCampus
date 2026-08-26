@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Menu, Bell, Search, User, LogOut, Settings, Shield, ChevronDown, ChevronLeft, ChevronRight, Moon, Sun } from 'lucide-react'
-import { currentAdmin } from '../../data/admin'
+import { useAuth } from '../../context/AuthContext'
 
 export function AdminHeader({
   onMenuClick,
   sidebarCollapsed,
   onToggleSidebar,
-  admin,
 }) {
+  const { admin, logout } = useAuth()
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -170,7 +170,10 @@ export function AdminHeader({
                     Security
                   </button>
                   <hr className="my-2 border-admin-100" />
-                  <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger-600 hover:bg-danger-50">
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-3 px-4 py-2 text-sm text-danger-600 hover:bg-danger-50"
+                  >
                     <LogOut className="w-4 h-4" />
                     Sign Out
                   </button>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   FileText,
@@ -14,7 +14,7 @@ import {
   LogOut,
   Bell,
 } from 'lucide-react'
-import { currentAdmin } from '../../data/admin'
+import { useAuth } from '../../context/AuthContext'
 
 const navItems = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -28,10 +28,8 @@ export function AdminSidebar({
   collapsed = false,
   mobileOpen = false,
   onCloseMobile,
-  currentPath = '/',
 }) {
-  const location = useLocation()
-  const activePath = currentPath || location.pathname
+  const { admin, logout } = useAuth()
 
   return (
     <>
@@ -76,30 +74,27 @@ export function AdminSidebar({
         {/* Navigation */}
         <nav className="flex-1 py-4 overflow-y-auto" aria-label="Main navigation">
           <ul className="space-y-1 px-3" role="list">
-            {navItems.map((item) => {
-              const isActive = activePath.startsWith(item.path)
-              return (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) => `
-                      flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-colors
-                      ${isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-admin-600 hover:bg-admin-100 hover:text-admin-900'
-                      }
-                      ${collapsed ? 'justify-center' : ''}
-                    `}
-                    title={collapsed ? item.label : undefined}
-                    aria-current={isActive ? 'page' : undefined}
-                    onClick={onCloseMobile}
-                  >
-                    <item.icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
-                  </NavLink>
-                </li>
-              )
-            })}
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) => `
+                    flex items-center gap-3 px-3 py-2.5 rounded text-sm font-medium transition-colors
+                    ${isActive
+                      ? 'bg-primary-50 text-primary-700'
+                      : 'text-admin-600 hover:bg-admin-100 hover:text-admin-900'
+                    }
+                    ${collapsed ? 'justify-center' : ''}
+                  `}
+                  title={collapsed ? item.label : undefined}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={onCloseMobile}
+                >
+                  <item.icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </NavLink>
+              </li>
+            ))}
           </ul>
 
           {/* Collapse Toggle */}
@@ -133,15 +128,19 @@ export function AdminSidebar({
                 <Users className="w-4 h-4 text-primary-600" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-admin-900 truncate">{currentAdmin.name}</p>
-                <p className="text-xs text-admin-500 truncate">{currentAdmin.university.toUpperCase()}</p>
+                <p className="text-sm font-medium text-admin-900 truncate">{admin?.name}</p>
+                <p className="text-xs text-admin-500 truncate">{admin?.university?.toUpperCase()}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <button className="admin-btn-ghost p-1.5 flex-1" title="Settings">
                 <Settings className="w-4 h-4" />
               </button>
-              <button className="admin-btn-ghost p-1.5 flex-1 text-danger-600 hover:bg-danger-50" title="Logout">
+              <button
+                onClick={logout}
+                className="admin-btn-ghost p-1.5 flex-1 text-danger-600 hover:bg-danger-50"
+                title="Logout"
+              >
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -151,7 +150,7 @@ export function AdminSidebar({
         {collapsed && (
           <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-admin-200 bg-white">
             <button
-              onClick={onCloseMobile}
+              onClick={logout}
               className="admin-btn-ghost w-full justify-center"
               title="Logout"
             >
