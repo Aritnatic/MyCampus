@@ -1,17 +1,22 @@
 import React, { useState, useMemo } from 'react'
+import { useStoreRevision } from '../../data/store'
 import { AdminPageLayout, AdminPageSection } from '../../components/admin/AdminPageLayout'
 import { AdminDataTable } from '../../components/admin/AdminDataTable'
 import { AdminFilterBar, AdminQuickFilters } from '../../components/admin/AdminFilterBar'
 import { AdminFormModal } from '../../components/admin/AdminFormModal'
 import { AdminStatBar, createStat } from '../../components/admin/AdminStatBar'
 import { AdminButton } from '../../components/admin/AdminForm'
+import { tokens, radius } from '../../theme'
 import { formatDate, formatNumber, truncate } from '../../utils/format'
 import {
   getJobsByUniversity,
   getCompaniesByUniversity,
   placementStats,
+  jobs,
+  companies,
 } from '../../data/placements'
-import { currentAdmin } from '../../data/admin'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/feedback/Toast'
 import {
   Briefcase,
   Building2,
@@ -20,6 +25,8 @@ import {
   Users,
   CheckCircle,
   GraduationCap,
+  Calendar,
+  FileText,
 } from 'lucide-react'
 import {
   createJobColumns,
@@ -43,10 +50,15 @@ import {
 } from '../../components/admin/columns/placementsCompaniesColumns'
 
 export default function PlacementsPage({ defaultTab = 'jobs' }) {
-  const uniId = currentAdmin.university
+  const { admin } = useAuth()
+  const toast = useToast()
+  const uniId = admin?.university
   const [activeTab, setActiveTab] = useState(defaultTab)
-  const [jobsData] = useState(getJobsByUniversity(uniId))
-  const [companiesData] = useState(getCompaniesByUniversity(uniId))
+  const [rev, setRev] = useState(0)
+  const bump = () => setRev((r) => r + 1)
+  const storeRev = useStoreRevision() // changes when the API sync or a failed write updates the lists
+  const jobsData = React.useMemo(() => getJobsByUniversity(uniId), [uniId, rev, storeRev])
+  const companiesData = React.useMemo(() => getCompaniesByUniversity(uniId), [uniId, rev, storeRev])
 
   // Jobs state
   const [jobSearch, setJobSearch] = useState('')
@@ -101,7 +113,16 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
 
   const handleJobSubmit = (data) => {
     const jobData = mapFormToJob(data, editingJob)
-    console.log('Save job:', jobData)
+    const payload = { ...jobData, university: uniId, postedBy: admin?.id || 'admin-001' }
+    if (editingJob) {
+      jobs.update(editingJob.id, payload)
+      toast.success('Job posting updated.', { title: 'Saved' })
+    } else {
+      jobs.add({ id: `job-${Date.now()}`, ...payload, postedAt: new Date().toISOString() })
+      toast.success('Job posting created.', { title: 'Saved' })
+    }
+    bump()
+    setEditingJob(null)
     setJobModalOpen(false)
   }
 
@@ -118,7 +139,7 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
       <button className="admin-btn-ghost p-1.5" onClick={() => openEditJob(row)} aria-label="Edit job">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
       </button>
-      <button className="admin-btn-ghost p-1.5 text-danger-600 hover:bg-danger-50" onClick={() => console.log('Delete job:', row.id)} aria-label="Delete job">
+      <button className="admin-btn-ghost p-1.5" style={{ color: tokens.violetText, background: 'transparent' }} onClick={() => { jobs.remove(row.id); bump(); toast.warning('Job posting removed.', { title: 'Removed' }) }} aria-label="Delete job">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
       </button>
     </div>
@@ -139,7 +160,16 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
 
   const handleCompanySubmit = (data) => {
     const companyData = mapFormToCompany(data, editingCompany)
-    console.log('Save company:', companyData)
+    const payload = { ...companyData, addedBy: admin?.id || 'admin-001' }
+    if (editingCompany) {
+      companies.update(editingCompany.id, payload)
+      toast.success('Company updated.', { title: 'Saved' })
+    } else {
+      companies.add({ id: `comp-${Date.now()}`, ...payload, addedAt: new Date().toISOString() })
+      toast.success('Company added.', { title: 'Saved' })
+    }
+    bump()
+    setEditingCompany(null)
     setCompanyModalOpen(false)
   }
 
@@ -156,7 +186,7 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
       <button className="admin-btn-ghost p-1.5" onClick={() => openEditCompany(row)} aria-label="Edit company">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
       </button>
-      <button className="admin-btn-ghost p-1.5 text-danger-600 hover:bg-danger-50" onClick={() => console.log('Delete company:', row.id)} aria-label="Delete company">
+      <button className="admin-btn-ghost p-1.5" style={{ color: tokens.violetText, background: 'transparent' }} onClick={() => { companies.remove(row.id); bump(); toast.warning('Company removed.', { title: 'Removed' }) }} aria-label="Delete company">
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
       </button>
     </div>
@@ -172,7 +202,7 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
   return (
     <AdminPageLayout
       title="Placements & Careers"
-      subtitle={`Manage job postings, companies, and recruitment drives for ${uniId.toUpperCase()}`}
+      subtitle={`Manage job postings, companies, and recruitment drives for ${uniId?.toUpperCase() || 'your university'}`}
       actions={activeTab === 'jobs' ? [
         { label: 'Post Job', icon: <Plus className="w-4 h-4" />, onClick: openCreateJob, variant: 'primary' }
       ] : activeTab === 'companies' ? [
@@ -278,54 +308,56 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
       {activeTab === 'stats' && (
         <AdminPageSection>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white border border-admin-100 rounded-lg p-6">
-              <p className="text-sm font-medium text-admin-500">Placement %</p>
-              <p className="text-3xl font-bold text-admin-900 mt-1">{placementStats.placementPercentage}%</p>
-              <p className="text-sm text-admin-500 mt-1 flex items-center gap-1">
-                <CheckCircle className="w-4 h-4 text-success-600" />
-                {formatNumber(placementStats.placedStudents)} placed
-              </p>
-            </div>
-            <div className="bg-white border border-admin-100 rounded-lg p-6">
-              <p className="text-sm font-medium text-admin-500">Average Package</p>
-              <p className="text-3xl font-bold text-admin-900 mt-1">₹{(placementStats.averagePackage / 100000).toFixed(2)} L</p>
-              <p className="text-sm text-admin-500 mt-1 flex items-center gap-1">
-                <TrendingUp className="w-4 h-4 text-success-600" />
-                {formatNumber(placementStats.totalCompanies)} companies
-              </p>
-            </div>
-            <div className="bg-white border border-admin-100 rounded-lg p-6">
-              <p className="text-sm font-medium text-admin-500">Highest Package</p>
-              <p className="text-3xl font-bold text-admin-900 mt-1">₹{(placementStats.highestPackage / 100000).toFixed(2)} L</p>
-              <p className="text-sm text-admin-500 mt-1 flex items-center gap-1">
-                <GraduationCap className="w-4 h-4 text-primary-600" />
-                {placementStats.tier1Companies} Tier-1 companies
-              </p>
-            </div>
-            <div className="bg-white border border-admin-100 rounded-lg p-6">
-              <p className="text-sm font-medium text-admin-500">Eligible Students</p>
-              <p className="text-3xl font-bold text-admin-900 mt-1">{formatNumber(placementStats.eligibleStudents)}</p>
-              <p className="text-sm text-admin-500 mt-1 flex items-center gap-1">
-                <Users className="w-4 h-4 text-primary-600" />
-                {formatNumber(placementStats.registeredStudents)} registered
-              </p>
-            </div>
+            <StatCard
+              label="Placement %"
+              value={`${placementStats.placementPercentage}%`}
+              icon={CheckCircle}
+              accent={tokens.green}
+              sub={`${formatNumber(placementStats.placedStudents)} placed`}
+            />
+            <StatCard
+              label="Average Package"
+              value={`₹${(placementStats.averagePackage / 100000).toFixed(2)} L`}
+              icon={TrendingUp}
+              accent={tokens.violet}
+              sub={`${formatNumber(placementStats.totalCompanies)} companies`}
+            />
+            <StatCard
+              label="Highest Package"
+              value={`₹${(placementStats.highestPackage / 100000).toFixed(2)} L`}
+              icon={GraduationCap}
+              accent={tokens.blue}
+              sub={`${placementStats.tier1Companies} Tier-1 companies`}
+            />
+            <StatCard
+              label="Eligible Students"
+              value={formatNumber(placementStats.eligibleStudents)}
+              icon={Users}
+              accent={tokens.yellow}
+              sub={`${formatNumber(placementStats.registeredStudents)} registered`}
+            />
           </div>
 
           <AdminPageSection title="Recruitment Summary">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-white border border-admin-100 rounded-lg p-6">
-                <p className="text-sm font-medium text-admin-500">Ongoing Drives</p>
-                <p className="text-2xl font-bold text-admin-900 mt-1">{placementStats.ongoingDrives}</p>
-              </div>
-              <div className="bg-white border border-admin-100 rounded-lg p-6">
-                <p className="text-sm font-medium text-admin-500">Upcoming Drives</p>
-                <p className="text-2xl font-bold text-admin-900 mt-1">{placementStats.upcomingDrives}</p>
-              </div>
-              <div className="bg-white border border-admin-100 rounded-lg p-6">
-                <p className="text-sm font-medium text-admin-500">Total Applications</p>
-                <p className="text-2xl font-bold text-admin-900 mt-1">{formatNumber(1987)}</p>
-              </div>
+              <StatCard
+                label="Ongoing Drives"
+                value={placementStats.ongoingDrives}
+                icon={Briefcase}
+                accent={tokens.green}
+              />
+              <StatCard
+                label="Upcoming Drives"
+                value={placementStats.upcomingDrives}
+                icon={Calendar}
+                accent={tokens.blue}
+              />
+              <StatCard
+                label="Total Applications"
+                value={formatNumber(1987)}
+                icon={FileText}
+                accent={tokens.violet}
+              />
             </div>
           </AdminPageSection>
         </AdminPageSection>
@@ -353,5 +385,43 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
         size="lg"
       />
     </AdminPageLayout>
+  )
+}
+
+// Local stat card — uses the same dark token system as the dashboard.
+function StatCard({ label, value, sub, icon: Icon, accent }) {
+  return (
+    <div
+      className="p-5"
+      style={{
+        background: tokens.surface,
+        border: `1px solid ${tokens.hairline}`,
+        borderRadius: 14,
+      }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="w-8 h-8 flex items-center justify-center"
+          style={{ background: `${accent}22`, color: accent, borderRadius: 8 }}
+          aria-hidden="true"
+        >
+          <Icon className="w-4 h-4" />
+        </span>
+        <span className="text-[11px] uppercase tracking-wider font-medium" style={{ color: tokens.inkFaint }}>
+          {label}
+        </span>
+      </div>
+      <div
+        className="text-2xl font-semibold tracking-tight tabular-nums"
+        style={{ color: tokens.ink, fontVariantNumeric: 'tabular-nums' }}
+      >
+        {value}
+      </div>
+      {sub && (
+        <div className="text-[11px] mt-1" style={{ color: tokens.inkSoft }}>
+          {sub}
+        </div>
+      )}
+    </div>
   )
 }

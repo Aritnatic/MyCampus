@@ -47,7 +47,7 @@ export function AdminFilterBar({
               value={filterValues[filter.key] || 'all'}
               onChange={(e) => onFilterChange?.(filter.key, e.target.value)}
               options={[{ value: 'all', label: filter.allLabel || 'All' }, ...filter.options]}
-              className={`w-full sm:w-${filter.width || '48'}`}
+              className={widthClass(filter.width)}
               placeholder={filter.placeholder}
             />
           )}
@@ -57,7 +57,7 @@ export function AdminFilterBar({
               onChange={(values) => onFilterChange?.(filter.key, values)}
               options={filter.options}
               placeholder={filter.placeholder || 'Select...'}
-              className={`w-full sm:w-${filter.width || '48'}`}
+              className={widthClass(filter.width)}
             />
           )}
           {filter.type === 'dateRange' && (
@@ -165,11 +165,13 @@ function AdminMultiSelect({ value = [], onChange, options = [], placeholder, cla
 export function AdminQuickFilters({ filters = [], activeFilter, onChange, className = '' }) {
   return (
     <div className={`admin-quick-filters flex flex-wrap gap-2 ${className}`}>
-      {filters.map((filter) => (
+      {filters.map((filter) => {
+        const isActive = activeFilter === filter.value
+        return (
         <button
           key={filter.value}
           onClick={() => onChange(filter.value)}
-          className={`admin-btn-${activeFilter === filter.value ? 'primary' : 'outline'} admin-btn-sm`}
+          className={isActive ? 'admin-btn-primary admin-btn-sm' : 'admin-btn-outline admin-btn-sm'}
         >
           {filter.label}
           {filter.count !== undefined && (
@@ -178,7 +180,15 @@ export function AdminQuickFilters({ filters = [], activeFilter, onChange, classN
             </span>
           )}
         </button>
-      ))}
+        )
+      })}
     </div>
   )
+}
+
+// Tailwind JIT can only generate literal class names. Map a `width` prop
+// (number of rem, or a string) to one of the known width utilities.
+const ALLOWED_WIDTHS = { 32: 'sm:w-32', 40: 'sm:w-40', 48: 'sm:w-48', 56: 'sm:w-56', 64: 'sm:w-64', 72: 'sm:w-72', 80: 'sm:w-80' }
+function widthClass(width) {
+  return `w-full ${ALLOWED_WIDTHS[width] || ALLOWED_WIDTHS[48]}`
 }

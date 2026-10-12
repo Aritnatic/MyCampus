@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
+import { useStoreRevision } from '../../data/store'
 import { AdminTabs, TabPanel } from '../../components/admin/AdminTabs'
 import { AdminTable, createColumn } from '../../components/admin/AdminTable'
 import { AdminBadge, AdminStatusDot } from '../../components/admin/AdminBadge'
 import { AdminModal, AdminInput, AdminTextarea, AdminSelect, AdminButton, FormRow, AdminConfirmDialog, FormSection } from '../../components/admin/AdminForm'
+import { PageHeader, PrimaryButton } from '../../components/admin/PageChrome'
+import { tokens, radius } from '../../theme'
 import { formatDate, formatNumber, truncate, getRelativeDate } from '../../utils/format'
 import {
   getExamsByUniversity,
@@ -14,7 +17,8 @@ import {
   getResultByExamId,
   results,
 } from '../../data/exams'
-import { currentAdmin } from '../../data/admin'
+import { useAuth } from '../../context/AuthContext'
+import { useToast } from '../../components/feedback/Toast'
 import {
   BookOpen,
   FileText,
@@ -75,10 +79,15 @@ const initialResultForm = {
 }
 
 export default function ExamsResultsPage({ defaultTab = 'exams' }) {
-  const uniId = currentAdmin.university
+  const { admin } = useAuth()
+  const toast = useToast()
+  const uniId = admin?.university
   const [activeTab, setActiveTab] = useState(defaultTab)
-  const [examsData] = useState(getExamsByUniversity(uniId))
-  const [resultsData] = useState(getResultsByUniversity(uniId))
+  const [rev, setRev] = useState(0)
+  const bump = () => setRev((r) => r + 1)
+  const storeRev = useStoreRevision() // changes when the API sync or a failed write updates the lists
+  const examsData = React.useMemo(() => getExamsByUniversity(uniId), [uniId, rev, storeRev])
+  const resultsData = React.useMemo(() => getResultsByUniversity(uniId), [uniId, rev, storeRev])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [examModalOpen, setExamModalOpen] = useState(false)
@@ -111,8 +120,8 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
   const examColumns = [
     createColumn({ key: 'title', header: 'Exam', width: '30%', render: (val, row) => (
       <div>
-        <p className="font-medium text-admin-900">{truncate(val, 50)}</p>
-        <p className="text-sm text-admin-500 mt-0.5 flex items-center gap-1">
+        <p style={{ color: tokens.ink, fontWeight: 500 }}>{truncate(val, 50)}</p>
+        <p className="text-sm mt-0.5 flex items-center gap-1" style={{ color: tokens.inkSoft }}>
           <BookOpen className="w-3 h-3" />
           {row.branch} - Sem {row.semester} ({row.type})
         </p>
@@ -122,16 +131,16 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
       <AdminBadge status={val} size="sm" />
     )}),
     createColumn({ key: 'startDate', header: 'Start Date', width: '140px', render: (val) => (
-      <span className="text-sm text-admin-600">{formatDate(val)}</span>
+      <span style={{ color: tokens.inkSoft }}>{formatDate(val)}</span>
     )}),
     createColumn({ key: 'endDate', header: 'End Date', width: '140px', render: (val) => (
-      <span className="text-sm text-admin-600">{formatDate(val)}</span>
+      <span style={{ color: tokens.inkSoft }}>{formatDate(val)}</span>
     )}),
     createColumn({ key: 'venue', header: 'Venue', width: '200px', render: (val) => (
-      <span className="text-sm text-admin-600">{truncate(val, 30)}</span>
+      <span style={{ color: tokens.inkSoft }}>{truncate(val, 30)}</span>
     )}),
     createColumn({ key: 'totalStudents', header: 'Students', width: '100px', render: (val) => (
-      <span className="text-sm text-admin-600">{formatNumber(val)}</span>
+      <span style={{ color: tokens.inkSoft }}>{formatNumber(val)}</span>
     )}),
     createColumn({ key: 'resultsPublished', header: 'Results', width: '100px', render: (val, row) => (
       <AdminBadge status={val ? 'published' : 'pending'} size="sm" variant="dot" />
@@ -144,8 +153,8 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
       const exam = getExamById(val)
       return (
         <div>
-          <p className="font-medium text-admin-900">{exam ? truncate(exam.title, 50) : 'Unknown'}</p>
-          <p className="text-sm text-admin-500 mt-0.5">{exam ? `${exam.branch} - Sem ${exam.semester}` : ''}</p>
+          <p style={{ color: tokens.ink, fontWeight: 500 }}>{exam ? truncate(exam.title, 50) : 'Unknown'}</p>
+          <p className="text-sm mt-0.5" style={{ color: tokens.inkSoft }}>{exam ? `${exam.branch} - Sem ${exam.semester}` : ''}</p>
         </div>
       )
     }}),
@@ -153,19 +162,19 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
       <AdminBadge status={val} size="sm" />
     )}),
     createColumn({ key: 'totalStudents', header: 'Students', width: '100px', render: (val) => (
-      <span className="text-sm text-admin-600">{formatNumber(val)}</span>
+      <span style={{ color: tokens.inkSoft }}>{formatNumber(val)}</span>
     )}),
     createColumn({ key: 'passed', header: 'Passed', width: '100px', render: (val, row) => (
-      <span className="text-sm text-success-600">{formatNumber(val)}</span>
+      <span className="text-sm" style={{ color: tokens.greenText }}>{formatNumber(val)}</span>
     )}),
     createColumn({ key: 'failed', header: 'Failed', width: '100px', render: (val) => (
-      <span className="text-sm text-danger-600">{formatNumber(val)}</span>
+      <span className="text-sm" style={{ color: tokens.violetText }}>{formatNumber(val)}</span>
     )}),
     createColumn({ key: 'averagePercentage', header: 'Avg %', width: '100px', render: (val) => (
-      <span className="text-sm text-admin-600">{val ? val.toFixed(1) + '%' : '—'}</span>
+      <span style={{ color: tokens.inkSoft }}>{val ? val.toFixed(1) + '%' : '—'}</span>
     )}),
     createColumn({ key: 'publishedAt', header: 'Published', width: '140px', render: (val) => (
-      <span className="text-sm text-admin-600">{val ? formatDate(val) : '—'}</span>
+      <span style={{ color: tokens.inkSoft }}>{val ? formatDate(val) : '—'}</span>
     )}),
   ]
 
@@ -201,7 +210,25 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
 
   const handleExamSubmit = (e) => {
     e.preventDefault()
-    console.log('Save exam:', { ...examForm, subjects })
+    const payload = {
+      ...examForm,
+      university: uniId,
+      subjects: subjects.length ? subjects : examForm.subjects,
+    }
+    if (editingExam) {
+      exams.update(editingExam.id, payload)
+      toast.success('Exam updated.', { title: 'Saved' })
+    } else {
+      exams.add({
+        id: `exam-${Date.now()}`,
+        ...payload,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: admin?.id || 'admin-001',
+      })
+      toast.success('Exam created.', { title: 'Saved' })
+    }
+    bump()
     setExamModalOpen(false)
   }
 
@@ -235,7 +262,24 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
 
   const handleResultSubmit = (e) => {
     e.preventDefault()
-    console.log('Save result:', { ...resultForm, file: selectedFile })
+    const payload = {
+      ...resultForm,
+      university: uniId,
+      fileName: selectedFile?.name || resultForm.fileName,
+    }
+    if (editingResult) {
+      results.update(editingResult.id, payload)
+      toast.success('Result updated.', { title: 'Saved' })
+    } else {
+      results.add({
+        id: `result-${Date.now()}`,
+        ...payload,
+        uploadedBy: admin?.id || 'admin-001',
+        uploadedAt: new Date().toISOString(),
+      })
+      toast.success('Result uploaded.', { title: 'Saved' })
+    }
+    bump()
     setResultModalOpen(false)
   }
 
@@ -252,7 +296,10 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
   }
 
   const handleDeleteConfirm = () => {
-    console.log('Delete:', deleteConfirm.type, deleteConfirm.id)
+    if (deleteConfirm.type === 'exam') exams.remove(deleteConfirm.id)
+    else if (deleteConfirm.type === 'result') results.remove(deleteConfirm.id)
+    toast.warning(`${deleteConfirm.type} removed.`, { title: 'Removed' })
+    bump()
     setDeleteConfirm({ open: false, type: null, id: null })
   }
 
@@ -262,21 +309,20 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
   ]
 
   return (
-    <div className="admin-page">
-      <header className="admin-page-header">
-        <div>
-          <h1 className="admin-page-title">Exams & Results</h1>
-          <p className="admin-page-subtitle">Manage exam schedules and publish results for {uniId.toUpperCase()}</p>
-        </div>
-        <div className="flex gap-2">
-          {activeTab === 'exams' && (
-            <AdminButton variant="primary" onClick={openCreateExam}>
-              <Plus className="w-4 h-4" />
-              Schedule Exam
-            </AdminButton>
-          )}
-        </div>
-      </header>
+    <div className="h-full flex flex-col min-h-0">
+      <PageHeader
+        title="Exams & Results"
+        subtitle={`Manage exam schedules and publish results for ${uniId?.toUpperCase() || 'your university'}`}
+        actions={
+          activeTab === 'exams' ? (
+            <PrimaryButton icon={Plus} onClick={openCreateExam}>Schedule Exam</PrimaryButton>
+          ) : activeTab === 'results' ? (
+            <PrimaryButton icon={Plus} onClick={openCreateResult}>Publish Result</PrimaryButton>
+          ) : null
+        }
+      />
+
+      <div className="flex-1 min-h-0 overflow-y-auto admin-scrollbar-dark px-6 lg:px-8 py-6 max-w-7xl">
 
       <AdminTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
@@ -285,7 +331,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
         <div className="admin-section">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-admin-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inkFaint }} />
               <input
                 type="text"
                 placeholder="Search exams..."
@@ -331,7 +377,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
                   <Edit className="w-4 h-4" />
                 </button>
                 <button
-                  className="admin-btn-ghost p-1.5 text-danger-600 hover:bg-danger-50"
+                  className="admin-btn-ghost p-1.5" style={{ color: tokens.violetText, background: 'transparent' }}
                   onClick={() => confirmDelete('exam', row.id)}
                   aria-label="Delete exam"
                 >
@@ -348,7 +394,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
         <div className="admin-section">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-admin-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: tokens.inkFaint }} />
               <input
                 type="text"
                 placeholder="Search results..."
@@ -393,7 +439,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
                   </AdminButton>
                 )}
                 <button
-                  className="admin-btn-ghost p-1.5 text-danger-600 hover:bg-danger-50"
+                  className="admin-btn-ghost p-1.5" style={{ color: tokens.violetText, background: 'transparent' }}
                   onClick={() => confirmDelete('result', row.id)}
                   aria-label="Delete result"
                 >
@@ -451,7 +497,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
           <FormSection title="Subjects / Papers" description="Add each subject with date, time, and faculty">
             <div className="space-y-3">
               {subjects.map((subject, index) => (
-                <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 border border-admin-200">
+                <div key={index} className="flex flex-col sm:flex-row gap-3 p-3" style={{ border: `1px solid ${tokens.hairline}` }}>
                   <AdminInput label="Subject Code" value={subject.code} onChange={(e) => updateSubject(index, 'code', e.target.value)} className="flex-1" placeholder="e.g., CS301" />
                   <AdminInput label="Subject Name" value={subject.name} onChange={(e) => updateSubject(index, 'name', e.target.value)} className="flex-1" placeholder="e.g., Data Structures" />
                   <AdminInput label="Date" type="date" value={subject.date} onChange={(e) => updateSubject(index, 'date', e.target.value)} className="w-40" />
@@ -460,7 +506,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
                   <button
                     type="button"
                     onClick={() => removeSubject(index)}
-                    className="admin-btn-ghost p-1.5 text-danger-600 hover:bg-danger-50 self-end mb-1"
+                    className="admin-btn-ghost p-1.5 self-end mb-1" style={{ color: tokens.violetText, background: 'transparent' }}
                     disabled={subjects.length === 1}
                     aria-label="Remove subject"
                   >
@@ -511,9 +557,9 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
               className="admin-input"
               required={!editingResult}
             />
-            <p className="text-sm text-admin-500 mt-1">Upload CSV with columns: Student ID, Name, Subject Codes..., Total, Percentage, Grade</p>
-            {selectedFile && <p className="text-sm text-primary-600 mt-1">Selected: {selectedFile.name}</p>}
-            {editingResult?.fileName && !selectedFile && <p className="text-sm text-admin-500 mt-1">Current: {editingResult.fileName}</p>}
+            <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>Upload CSV with columns: Student ID, Name, Subject Codes..., Total, Percentage, Grade</p>
+            {selectedFile && <p className="text-sm mt-1" style={{ color: tokens.accent }}>Selected: {selectedFile.name}</p>}
+            {editingResult?.fileName && !selectedFile && <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>Current: {editingResult.fileName}</p>}
           </div>
           <AdminSelect
             label="Status"
@@ -538,6 +584,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
         confirmText="Delete"
         variant="danger"
       />
+      </div>
     </div>
   )
 }

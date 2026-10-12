@@ -1,9 +1,16 @@
+import { getNoticesByUniversity } from './notices'
+import { getEventsByUniversity } from './events'
+import { getExamsByUniversity, getResultsByUniversity } from './exams'
+import { getJobsByUniversity } from './placements'
+import { makeLiveList } from './store'
+
 // Admin users and university-scoped selectors
-export const adminUsers = [
+const _demoAdminUsers = [
   {
     id: 'admin-001',
     name: 'Dr. Rajesh Kumar',
     email: 'rajesh.kumar@cvrp.edu.in',
+    mode: 'admin',
     university: 'cvrp',
     role: 'superadmin',
     permissions: ['notices', 'events', 'exams', 'results', 'placements', 'settings', 'users'],
@@ -16,6 +23,7 @@ export const adminUsers = [
     id: 'admin-002',
     name: 'Prof. Anita Sharma',
     email: 'anita.sharma@cvrp.edu.in',
+    mode: 'admin',
     university: 'cvrp',
     role: 'moderator',
     permissions: ['notices', 'events', 'placements'],
@@ -28,6 +36,7 @@ export const adminUsers = [
     id: 'admin-003',
     name: 'Dr. Vikram Singh',
     email: 'vikram.singh@cvrp.edu.in',
+    mode: 'admin',
     university: 'cvrp',
     role: 'exams',
     permissions: ['exams', 'results'],
@@ -37,6 +46,8 @@ export const adminUsers = [
     avatar: null,
   },
 ]
+
+export const adminUsers = makeLiveList('adminUsers', _demoAdminUsers, 'adminUsers')
 
 export const currentAdmin = adminUsers[0] // Mock current logged-in admin
 
@@ -74,37 +85,109 @@ export const getRoleById = (id) => roles.find(r => r.id === id)
 
 export const getPermissionById = (id) => permissions.find(p => p.id === id)
 
-// Dashboard stats - university scoped
-export const getDashboardStats = (uniId) => ({
-  students: 2847,
-  faculty: 186,
-  pendingApprovals: 12,
-  activeEvents: 8,
-  publishedNotices: 5,
-  scheduledExams: 24,
-  pendingResults: 3,
-  activeJobPostings: 15,
-  totalApplications: 1247,
-  placedStudents: 892,
-})
+// Dashboard stats - computed from the actual data layer for the given university
+export const getDashboardStats = (uniId) => {
+  const uNotices = getNoticesByUniversity(uniId)
+  const uEvents = getEventsByUniversity(uniId)
+  const uExams = getExamsByUniversity(uniId)
+  const uResults = getResultsByUniversity(uniId)
+  const uJobs = getJobsByUniversity(uniId)
 
-// Recent activity - university scoped
-export const getRecentActivity = (uniId, limit = 10) => [
-  { id: 'act-001', type: 'notice_published', title: 'Semester Registration Opens for Even Sem 2024', actor: 'Dr. Rajesh Kumar', timestamp: '2024-01-20T09:00:00Z', status: 'completed' },
-  { id: 'act-002', type: 'event_approved', title: 'TechFest 2024 - Annual Technical Festival', actor: 'Prof. Anita Sharma', timestamp: '2024-01-19T16:30:00Z', status: 'completed' },
-  { id: 'act-003', type: 'exam_scheduled', title: 'Mid-Semester Exams - CSE 3rd Sem', actor: 'Dr. Vikram Singh', timestamp: '2024-01-19T11:00:00Z', status: 'completed' },
-  { id: 'act-004', type: 'job_posted', title: 'TCS Internship Drive - Applications Open', actor: 'Prof. Anita Sharma', timestamp: '2024-01-18T14:20:00Z', status: 'completed' },
-  { id: 'act-005', type: 'result_published', title: 'End-Sem Results - ECE 5th Sem', actor: 'Dr. Vikram Singh', timestamp: '2024-01-17T10:00:00Z', status: 'completed' },
-  { id: 'act-006', type: 'notice_draft', title: 'Faculty Development Program - AI in Education', actor: 'Dr. Rajesh Kumar', timestamp: '2024-01-20T08:00:00Z', status: 'pending' },
-  { id: 'act-007', type: 'event_pending', title: 'Hackathon 2024 - Internal Review', actor: 'Prof. Anita Sharma', timestamp: '2024-01-19T09:30:00Z', status: 'pending' },
-  { id: 'act-008', type: 'exam_pending', title: 'Lab Exam Schedule - ME 4th Sem', actor: 'Dr. Vikram Singh', timestamp: '2024-01-18T16:00:00Z', status: 'pending' },
-].slice(0, limit)
+  const now = new Date()
+  const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-// Pending items requiring admin attention
-export const getPendingItems = (uniId) => ({
-  notices: 2,
-  events: 3,
-  exams: 1,
-  results: 2,
-  placements: 0,
-})
+  return {
+    publishedNotices: uNotices.filter(n => n.status === 'published').length,
+    upcomingEvents: uEvents.filter(e => e.approvalStatus === 'approved' && new Date(e.startDate) > now).length,
+    scheduledExams: uExams.filter(e => e.status === 'scheduled').length,
+    activeJobPostings: uJobs.filter(j => j.status === 'open').length,
+    newThisWeek: {
+      notices: uNotices.filter(n => n.publishedAt && new Date(n.publishedAt) > weekAgo).length,
+      events: uEvents.filter(e => new Date(e.submittedAt) > weekAgo).length,
+      exams: uExams.filter(e => new Date(e.createdAt) > weekAgo).length,
+      jobs: uJobs.filter(j => j.postedAt && new Date(j.postedAt) > weekAgo).length,
+    },
+  }
+}
+
+// Recent activity - composed from real notice/event/exam/result/job records
+export const getRecentActivity = (uniId, limit = 8) => {
+  const uNotices = getNoticesByUniversity(uniId)
+  const uEvents = getEventsByUniversity(uniId)
+  const uExams = getExamsByUniversity(uniId)
+  const uResults = getResultsByUniversity(uniId)
+  const uJobs = getJobsByUniversity(uniId)
+
+  const adminName = (id) => adminUsers.find(a => a.id === id)?.name || 'System'
+
+  const items = [
+    ...uNotices
+      .filter(n => n.publishedAt)
+      .map(n => ({
+        id: `notice-${n.id}`,
+        type: 'notice_published',
+        title: n.title,
+        actor: adminName(n.publishedBy),
+        timestamp: n.publishedAt,
+        status: n.status === 'published' ? 'completed' : 'pending',
+      })),
+    ...uEvents.map(e => ({
+      id: `event-${e.id}`,
+      type: e.approvalStatus === 'approved' ? 'event_approved' : 'event_pending',
+      title: e.title,
+      actor: adminName(e.approvedBy) || e.organizer,
+      timestamp: e.approvedAt || e.submittedAt,
+      status: e.approvalStatus === 'approved' ? 'completed' : 'pending',
+    })),
+    ...uExams.map(ex => ({
+      id: `exam-${ex.id}`,
+      type: ex.status === 'scheduled' ? 'exam_scheduled' : 'exam_pending',
+      title: ex.title,
+      actor: adminName(ex.createdBy),
+      timestamp: ex.updatedAt || ex.createdAt,
+      status: ex.status === 'scheduled' || ex.status === 'published' ? 'completed' : 'pending',
+    })),
+    ...uResults
+      .filter(r => r.publishedAt)
+      .map(r => ({
+        id: `result-${r.id}`,
+        type: 'result_published',
+        title: `${r.branch} ${r.semester} Sem Results`,
+        actor: adminName(r.uploadedBy),
+        timestamp: r.publishedAt,
+        status: 'completed',
+      })),
+    ...uJobs
+      .filter(j => j.postedAt)
+      .map(j => ({
+        id: `job-${j.id}`,
+        type: 'job_posted',
+        title: `${j.title} - ${j.company}`,
+        actor: adminName(j.postedBy),
+        timestamp: j.postedAt,
+        status: j.status === 'open' ? 'completed' : 'pending',
+      })),
+  ]
+
+  return items
+    .filter(i => i.timestamp)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    .slice(0, limit)
+}
+
+// Pending items requiring admin attention - counted from the actual data
+export const getPendingItems = (uniId) => {
+  const uNotices = getNoticesByUniversity(uniId)
+  const uEvents = getEventsByUniversity(uniId)
+  const uExams = getExamsByUniversity(uniId)
+  const uResults = getResultsByUniversity(uniId)
+  const uJobs = getJobsByUniversity(uniId)
+
+  return {
+    notices: uNotices.filter(n => n.status === 'draft').length,
+    events: uEvents.filter(e => e.approvalStatus === 'pending' || e.approvalStatus === 'under_review').length,
+    exams: uExams.filter(e => e.status === 'draft').length,
+    results: uResults.filter(r => r.status === 'pending' || r.status === 'uploaded').length,
+    placements: uJobs.filter(j => j.status === 'draft').length,
+  }
+}

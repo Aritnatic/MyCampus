@@ -278,6 +278,57 @@
   .admin-scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: rgb(148 163 184);
   }
+
+  /* Dark-theme scrollbar: subtle white thumb, transparent track.
+     Visible but unobtrusive. */
+  .admin-scrollbar-dark {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  }
+
+  .admin-scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .admin-scrollbar-dark::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .admin-scrollbar-dark::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.22);
+    border-radius: 3px;
+  }
+
+  .admin-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.38);
+  }
+
+  /* Apple-style motion primitives.
+     --ease-apple is the "soft spring" cubic-bezier used across Apple HIG:
+     a fast start, soft landing, no overshoot. */
+  .ease-apple {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Smooth interactive transition: applied to any element that should
+     feel responsive on hover/press. */
+  .smooth {
+    transition-property: background-color, border-color, color, fill, stroke,
+      opacity, box-shadow, transform, filter;
+    transition-duration: 220ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform;
+  }
+
+  .smooth-press:active {
+    transform: scale(0.985);
+  }
+
+  /* Subtle lift on hover for the dashboard cards (header, stat tiles, etc.) */
+  .smooth-lift:hover {
+    transform: translateY(-1px);
+  }
 }
 
 @layer utilities {

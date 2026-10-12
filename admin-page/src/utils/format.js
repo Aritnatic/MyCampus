@@ -96,3 +96,20 @@ export const statusDotClasses = {
 
 // Guard against Date.now() in some environments
 export const now = () => new Date()
+
+// Human-readable relative time: "just now", "5m ago", "3h ago", "2d ago", "Jan 15"
+export const formatRelative = (date) => {
+  if (!date) return '—'
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return '—'
+  const diffMs = Date.now() - d.getTime()
+  const diffSec = Math.round(diffMs / 1000)
+  if (diffSec < 45) return 'just now'
+  const diffMin = Math.round(diffSec / 60)
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHr = Math.round(diffMin / 60)
+  if (diffHr < 24) return `${diffHr}h ago`
+  const diffDay = Math.round(diffHr / 24)
+  if (diffDay < 7) return `${diffDay}d ago`
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}

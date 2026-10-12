@@ -1,5 +1,7 @@
 # Dependencies
-node_modules/
+# No trailing slash: node_modules is a symlink here (packages live outside
+# iCloud in ~/dev-modules), and "node_modules/" matches only real directories.
+node_modules
 
 # Build output
 dist/
