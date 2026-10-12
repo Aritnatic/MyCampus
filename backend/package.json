@@ -1,0 +1,27 @@
+{
+  "name": "mycampus-api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "node --watch --disable-warning=ExperimentalWarning src/server.js",
+    "start": "node --disable-warning=ExperimentalWarning src/server.js",
+    "seed": "node --disable-warning=ExperimentalWarning src/seed.js",
+    "test": "node --test --test-concurrency=1 --disable-warning=ExperimentalWarning tests/*.test.js",
+    "bootstrap": "node --disable-warning=ExperimentalWarning scripts/bootstrap.js",
+    "backup": "node --disable-warning=ExperimentalWarning scripts/backup.js",
+    "loadtest": "node --disable-warning=ExperimentalWarning scripts/loadtest.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "zod": "^4.6.5"
+  }
+}
