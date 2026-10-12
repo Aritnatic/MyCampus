@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "MyCampus",
+    "slug": "mycampus-student",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.cvrp.mycampus"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0d0d0f",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "in.cvrp.mycampus"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-secure-store",
+      "expo-sharing"
+    ],
+    "scheme": "mycampus",
+    "backgroundColor": "#0d0d0f"
+  }
+}
