@@ -1,0 +1,43 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "backend",
+        "run",
+        "start"
+      ],
+      "port": 4000
+    },
+    {
+      "name": "admin",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "admin-page",
+        "run",
+        "dev",
+        "--",
+        "--no-open"
+      ],
+      "port": 5174
+    },
+    {
+      "name": "student-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "student-app",
+        "run",
+        "web",
+        "--",
+        "--port",
+        "8081"
+      ],
+      "port": 8081
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/.expo
+.git
+.DS_Store
+student-app
+Micro Dashboard
+backend/data
+backend/tests
+*.md
+!backend/legal/**

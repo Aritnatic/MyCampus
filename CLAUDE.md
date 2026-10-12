@@ -88,12 +88,12 @@ Campus information today is scattered — spread across notices, WhatsApp groups
 | Build | Vite | Fast dev + optimized build |
 
 ### Upcoming Architecture Decisions (To Be Finalized)
-- [ ] **Student App** (`mycampus/`) — separate React app or shared monorepo?
-- [ ] **Backend** — Node/Express, Python/FastAPI, or Supabase/Firebase?
-- [ ] **Database** — PostgreSQL, MongoDB, or SQLite for dev?
-- [ ] **Auth** — JWT, NextAuth, Clerk, or custom?
-- [ ] **Real-time** — WebSockets, Server-Sent Events, or Firebase?
-- [ ] **AI/ML** — Embeddings for semantic search (OpenAI, local, or vector DB)?
+- [x] **Student App** (`student-app/`) — Expo / React Native (SDK 57) + Expo Router, separate from `admin-page/`
+- [x] **Backend** (`backend/`) — Node/Express REST API, JWT auth, access rules in `backend/src/access.js`
+- [x] **Database** — SQLite (`node:sqlite`) for dev; JSON documents with promoted columns. Revisit Postgres before production
+- [x] **Auth** — custom: scrypt passwords + 7-day JWT with server-side revocation; registration verified by campus email domain + emailed code; reset/change password; token in Keychain/Keystore on the phone
+- [x] **Real-time** — Server-Sent Events (one-time ticket auth) + Expo push; in-process bus, needs Redis before multi-instance
+- [ ] **AI/ML** — Search is BM25 + synonyms today (`backend/src/search.js`); embeddings provider still undecided
 - [ ] **Deployment** — Vercel, Netlify, Railway, or self-hosted?
 - [ ] **Monorepo** — Turborepo, Nx, or pnpm workspaces?
 
