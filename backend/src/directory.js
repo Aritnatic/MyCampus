@@ -1,5 +1,5 @@
 import { stripRanking } from './access.js'
-import { db, universities, users } from './db.js'
+import { db, studentsVersion, universities, users } from './db.js'
 
 // Whether a student has chosen to be discoverable beyond their own campus as a mentor.
 // Until they decide, seniors (year 4+) default to open — that's how the app bootstraps mentors.
@@ -41,6 +41,14 @@ export function personView(row, unis = uniCache(), counts, p = JSON.parse(row.da
 export const withUni = (unis, item) => ({ ...item, _uni: unis[item.university] ?? null })
 export { uniCache }
 
+// Active students with their profiles already parsed. Rebuilt only when a student account changes
+// (studentsVersion), not per request: with thousands of students, re-reading and re-parsing every
+// profile on each Home/Discover load was the main cost. Treat the returned objects as read-only.
+let studentCache = { version: -1, list: [] }
 export function studentRows() {
-  return users.students()
+  const version = studentsVersion()
+  if (studentCache.version !== version) {
+    studentCache = { version, list: users.students().map((row) => ({ row, profile: JSON.parse(row.data) })) }
+  }
+  return studentCache.list
 }

@@ -1,9 +1,9 @@
 import { Router } from 'express'
 import { requireAuth } from '../auth.js'
 import { canView, DISCOVER, matchScore } from '../access.js'
-import { docs, users } from '../db.js'
+import { docs, studentsVersion, users } from '../db.js'
 import { HttpError, parse, wrap, z } from '../http.js'
-import { canSeePerson, connectionCounts, isMentor, personView, uniCache, withUni } from '../directory.js'
+import { canSeePerson, connectionCounts, isMentor, personView, studentRows, uniCache, withUni } from '../directory.js'
 import { search } from '../search.js'
 import { coverage, skillInText } from '../skills.js'
 import { viewDocs } from '../views.js'
@@ -15,19 +15,14 @@ const profileOf = (user) => JSON.parse(user.data)
 
 // Students this person may see, with each profile parsed once. Cards are built later, only for who is shown.
 function visiblePeople(user, scope, { mentorsOnly } = {}) {
-  return users.students()
-    .filter((r) => r.id !== user.id && canSeePerson(user, r))
-    .filter((r) => (scope === 'all' ? true : r.university === user.university))
-    .map((row) => ({ row, profile: JSON.parse(row.data) }))
+  return studentRows()
+    .filter(({ row }) => row.id !== user.id && canSeePerson(user, row))
+    .filter(({ row }) => (scope === 'all' ? true : row.university === user.university))
     .filter(({ profile }) => !mentorsOnly || isMentor(profile))
 }
 
-function candidates(user, kind, scope, { mentorsOnly } = {}) {
+function candidates(user, kind, scope) {
   const unis = uniCache()
-  if (kind === 'people') {
-    const counts = connectionCounts()
-    return visiblePeople(user, scope, { mentorsOnly }).map(({ row, profile }) => personView(row, unis, counts, profile))
-  }
   const dk = DISCOVER[kind].kind
   const items = viewDocs(dk, docs.list(dk).filter((d) => canView(user, dk, d)), user)
   // Jobs aren't tied to a campus; faculty are already campus-only via canView.
@@ -35,19 +30,30 @@ function candidates(user, kind, scope, { mentorsOnly } = {}) {
   return scoped.map((d) => withUni(unis, d))
 }
 
+// A list never needs to be longer than a screen or two; "search to narrow" covers the rest. Capping it
+// keeps a campus of thousands from being sent (and rendered) in full on every visit.
+const LIST_LIMIT = 100
+
 discoverRoutes.get('/discover/:kind', wrap(async (req, res) => {
   const spec = DISCOVER[req.params.kind]
   if (!spec) throw new HttpError(404, 'Unknown discovery type.')
   const scope = req.query.scope === 'all' ? 'all' : 'campus'
   const needle = String(req.query.q ?? '').trim().toLowerCase()
   const me = profileOf(req.user)
-
-  const out = candidates(req.user, req.params.kind, scope, { mentorsOnly: req.query.mentors === '1' })
-    .filter((x) => !needle || spec.text(x).some((t) => String(t).toLowerCase().includes(needle)))
-    // Order is by relevance to *you* (shared skills/interests) — never a ranking of people.
-    .map((x) => ({ item: x, score: matchScore(me, spec.terms(x)) }))
+  // Order is by relevance to *you* (shared skills/interests) — never a ranking of people.
+  const rank = (list, get) => list
+    .filter((x) => !needle || spec.text(get(x)).some((t) => String(t).toLowerCase().includes(needle)))
+    .map((x) => ({ x, score: matchScore(me, spec.terms(get(x))) }))
     .sort((a, b) => b.score - a.score)
-  res.json(out)
+
+  if (req.params.kind === 'people') {
+    // Score the raw profiles and build cards only for the ones that are shown.
+    const unis = uniCache()
+    const counts = connectionCounts()
+    const shown = rank(visiblePeople(req.user, scope, { mentorsOnly: req.query.mentors === '1' }), (p) => p.profile).slice(0, LIST_LIMIT)
+    return res.json(shown.map(({ x, score }) => ({ item: personView(x.row, unis, counts, x.profile), score })))
+  }
+  res.json(rank(candidates(req.user, req.params.kind, scope), (x) => x).slice(0, LIST_LIMIT).map(({ x, score }) => ({ item: x, score })))
 }))
 
 discoverRoutes.get('/discover/:kind/:id', wrap(async (req, res) => {
@@ -84,7 +90,29 @@ const roleHit = (roles = [], skills) => roles.flatMap((role) => {
   return by ? [{ role, by }] : []
 })
 
+// Suggestions are the costliest thing the app asks for (every request compares you with every student),
+// and Home and Discover both ask. The answer only changes when a student account or a listing changes,
+// so keep each person's last answer until then. Bounded, so memory stays flat as the campus grows.
+const MATCH_CACHE_MAX = 1000
+const matchCache = new Map()
+function cachedMatches(user, compute) {
+  const stamp = docs.stamp()
+  const key = `${studentsVersion()}|${stamp.n}|${stamp.t}`
+  const hit = matchCache.get(user.id)
+  if (hit?.key === key) return hit.value
+  const value = compute()
+  matchCache.delete(user.id)
+  matchCache.set(user.id, { key, value })
+  if (matchCache.size > MATCH_CACHE_MAX) matchCache.delete(matchCache.keys().next().value) // oldest first
+  return value
+}
+
 discoverRoutes.get('/matches', wrap(async (req, res) => {
+  res.json(cachedMatches(req.user, () => computeMatches(req.user)))
+}))
+
+function computeMatches(user) {
+  const req = { user }
   const me = profileOf(req.user)
   const mine = offer(me)
   const rank = (list) => list.filter((m) => m.score > 0).sort((a, b) => b.score - a.score).slice(0, 8)
@@ -137,5 +165,5 @@ discoverRoutes.get('/matches', wrap(async (req, res) => {
     return { item: f, score: fit.length * 2, reasons: fit.slice(0, 3).map((c) => `Researches ${c.required} — you list ${c.by}`) }
   })).slice(0, 4)
 
-  res.json({ projects, startups, research, people: shownPeople, faculty, profileComplete: mine.length > 0 })
-}))
+  return { projects, startups, research, people: shownPeople, faculty, profileComplete: mine.length > 0 }
+}

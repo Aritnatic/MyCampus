@@ -171,6 +171,17 @@ const MIGRATIONS = [
   CREATE UNIQUE INDEX guidance_open ON guidance_requests (from_id, faculty_id) WHERE status = 'pending';
   CREATE INDEX guidance_uni ON guidance_requests (university, status, created_at DESC);
   `,
+  // 5 — change counters, so in-memory caches can tell when the data they were built from has changed.
+  // Triggers (not app code) bump them, so every write path counts, including scripts and tests. Only
+  // columns that affect discovery fire the users trigger: logging in or changing a password does not.
+  `
+  CREATE TABLE change_marks (name TEXT PRIMARY KEY, n INTEGER NOT NULL DEFAULT 0);
+  INSERT INTO change_marks (name, n) VALUES ('students', 0);
+  CREATE TRIGGER students_insert AFTER INSERT ON users BEGIN UPDATE change_marks SET n = n + 1 WHERE name = 'students'; END;
+  CREATE TRIGGER students_delete AFTER DELETE ON users BEGIN UPDATE change_marks SET n = n + 1 WHERE name = 'students'; END;
+  CREATE TRIGGER students_update AFTER UPDATE OF data, role, status, university, email_verified ON users
+    BEGIN UPDATE change_marks SET n = n + 1 WHERE name = 'students'; END;
+  `,
 ]
 
 const version = db.prepare('PRAGMA user_version').get().user_version
@@ -213,6 +224,9 @@ export const docs = {
   // Cheap change marker used to invalidate the search index.
   stamp: () => db.prepare('SELECT COUNT(*) AS n, MAX(updated_at) AS t FROM docs').get(),
 }
+
+// Cheap marker that changes whenever a student account is added, removed or edited (see migration 5).
+export const studentsVersion = () => db.prepare("SELECT n FROM change_marks WHERE name = 'students'").get().n
 
 export const users = {
   byEmail: (email) => db.prepare('SELECT * FROM users WHERE email = ?').get(email),

@@ -2,14 +2,29 @@
 // ("PCB Design (KiCad)", "React (learning)"), so comparisons go through `canon`, and a skill
 // can also *imply* broader ones (knowing PostgreSQL means you know SQL).
 
-export const norm = (s) => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9+#./\s]/g, '').replace(/\s+/g, ' ').trim()
+// Skill text is compared thousands of times per request (every student against every other), and the
+// same few hundred phrases come up again and again, so the pure helpers below remember their answers.
+function memo(fn, cap = 20000) {
+  const seen = new Map()
+  return (key) => {
+    let v = seen.get(key)
+    if (v === undefined) {
+      if (seen.size >= cap) seen.clear()
+      v = fn(key)
+      seen.set(key, v)
+    }
+    return v
+  }
+}
+
+export const norm = memo((s) => String(s).toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9+#./\s]/g, '').replace(/\s+/g, ' ').trim())
 
 const ALIAS = {
   js: 'javascript', ts: 'typescript', nodejs: 'node.js', 'node js': 'node.js', reactjs: 'react', 'react.js': 'react', postgres: 'postgresql',
   golang: 'go', 'c/c++': 'c++', ml: 'machine learning', dl: 'deep learning', ai: 'artificial intelligence', dsa: 'data structures',
   k8s: 'kubernetes', 'rest api': 'rest apis', restapi: 'rest apis', 'restful apis': 'rest apis', cv: 'computer vision', nlp: 'natural language processing',
 }
-export const canon = (s) => { const n = norm(s); return ALIAS[n] ?? n }
+export const canon = memo((s) => { const n = norm(s); return ALIAS[n] ?? n })
 
 const IMPLIES = {
   postgresql: ['sql', 'databases'], mysql: ['sql', 'databases'], sqlite: ['sql', 'databases'], sql: ['databases'], mongodb: ['nosql', 'databases'],
@@ -26,10 +41,11 @@ const IMPLIES = {
 }
 
 // Everything knowing `skill` lets you claim: itself plus what it implies.
-const claims = (skill) => { const c = canon(skill); return [c, ...(IMPLIES[c] ?? [])] }
+const claims = memo((skill) => { const c = canon(skill); return [c, ...(IMPLIES[c] ?? [])] })
 
 // Does the free-text `text` (a role title, a "looking for" phrase) mention this skill, or something it implies?
-const hasPhrase = (text, phrase) => new RegExp(`(^|[^a-z0-9+#])${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9+#])`).test(text)
+const phraseRegex = memo((phrase) => new RegExp(`(^|[^a-z0-9+#])${phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-z0-9+#])`))
+const hasPhrase = (text, phrase) => phraseRegex(phrase).test(text)
 export function skillInText(skill, text) {
   const t = norm(text)
   return claims(skill).find((c) => c.length >= 2 && hasPhrase(t, c)) ? skill : null
