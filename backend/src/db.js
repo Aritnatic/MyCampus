@@ -153,6 +153,24 @@ const MIGRATIONS = [
   );
   CREATE INDEX feedback_uni ON feedback (university, created_at DESC);
   `,
+  // 4 — students asking faculty for project guidance. Faculty are directory records, not accounts,
+  // so requests are emailed to them and a campus admin records their answer.
+  `
+  CREATE TABLE guidance_requests (
+    id TEXT PRIMARY KEY,
+    from_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    faculty_id TEXT NOT NULL,
+    university TEXT NOT NULL,
+    topic TEXT NOT NULL,
+    message TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'withdrawn')),
+    note TEXT,
+    created_at TEXT NOT NULL,
+    decided_at TEXT
+  );
+  CREATE UNIQUE INDEX guidance_open ON guidance_requests (from_id, faculty_id) WHERE status = 'pending';
+  CREATE INDEX guidance_uni ON guidance_requests (university, status, created_at DESC);
+  `,
 ]
 
 const version = db.prepare('PRAGMA user_version').get().user_version

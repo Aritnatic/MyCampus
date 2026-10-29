@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { FlaskConical, GraduationCap, Inbox, Pencil, Plus, Trash2 } from 'lucide-react'
+import { FlaskConical, GraduationCap, Inbox, HelpCircle, Pencil, Plus, Trash2 } from 'lucide-react'
 import { request } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/feedback/Toast'
@@ -61,7 +61,7 @@ const RESEARCH = {
 export default function FacultyResearchPage() {
   const { admin, hasPermission } = useAuth()
   const tabs = useMemo(() => [
-    ...(hasPermission('faculty') ? [{ id: 'faculty', label: 'Faculty', icon: GraduationCap }] : []),
+    ...(hasPermission('faculty') ? [{ id: 'faculty', label: 'Faculty', icon: GraduationCap }, { id: 'guidance', label: 'Guidance requests', icon: HelpCircle }] : []),
     ...(hasPermission('research') ? [{ id: 'research', label: 'Research', icon: FlaskConical }, { id: 'interest', label: 'Student interest', icon: Inbox }] : []),
   ], [hasPermission])
   const [tab, setTab] = useState(null)
@@ -82,6 +82,7 @@ export default function FacultyResearchPage() {
       {active === 'faculty' && <Crud key="faculty" cfg={FACULTY} />}
       {active === 'research' && <Crud key="research" cfg={RESEARCH} />}
       {active === 'interest' && <InterestInbox />}
+      {active === 'guidance' && <GuidanceInbox />}
     </div>
   )
 }
@@ -259,6 +260,90 @@ function InterestInbox() {
             </tbody></table>
           </SectionCard>
         </div>
+      )}
+    </div>
+  )
+}
+
+// Students who asked a teacher for project guidance. Teachers are emailed the request; an admin records their answer here.
+function GuidanceInbox() {
+  const toast = useToast()
+  const inbox = useAdminApi('/admin/guidance', { pollMs: 30000 })
+  const [deciding, setDeciding] = useState(null) // { request, status }
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const open = (request, status) => { setNote(''); setDeciding({ request, status }) }
+  const submit = async () => {
+    setSaving(true)
+    try {
+      await request(`/admin/guidance/${deciding.request.id}/decide`, { method: 'POST', body: { status: deciding.status, ...(note.trim() && { note: note.trim() }) } })
+      toast.success(deciding.status === 'accepted' ? 'The student was told the teacher can guide them.' : 'The student was told it didn’t work out this time.', { title: deciding.status === 'accepted' ? 'Accepted' : 'Declined' })
+      setDeciding(null)
+      inbox.reload()
+    } catch (err) {
+      toast.error(err.message, { title: 'Could not update' })
+    }
+    setSaving(false)
+  }
+
+  if (inbox.loading) return <Loading />
+  if (inbox.error) return <ErrorState message={inbox.error} onRetry={inbox.reload} />
+  const rows = inbox.data ?? []
+  const pending = rows.filter((r) => r.status === 'pending')
+  const done = rows.filter((r) => r.status === 'accepted' || r.status === 'declined')
+
+  return (
+    <div className="space-y-6">
+      <SectionCard padded={false}>
+        {pending.length === 0 ? <Empty icon={Inbox} title="No requests waiting" body="When a student taps “Ask for guidance” on a teacher in the app, the request shows up here and the teacher is emailed." /> : (
+          <ul>
+            {pending.map((r) => (
+              <li key={r.id} className="p-4 flex flex-col sm:flex-row sm:items-start justify-between gap-4" style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
+                <div>
+                  <div className="text-sm font-medium" style={{ color: tokens.ink }}>{r.from.name} <span style={{ color: tokens.inkFaint }}>· {r.from.email}</span></div>
+                  <div className="text-xs mt-0.5" style={{ color: tokens.violetText }}>Wants guidance from {r.faculty.name}{r.faculty.department ? ` · ${r.faculty.department}` : ''}</div>
+                  <div className="text-sm mt-2" style={{ color: tokens.ink }}>{r.topic}</div>
+                  {r.message ? <p className="text-sm mt-1 max-w-xl" style={{ color: tokens.inkSoft }}>“{r.message}”</p> : null}
+                  <div className="text-xs mt-1" style={{ color: tokens.inkFaint }}>{[r.from.branch, r.from.semester ? `semester ${r.from.semester}` : null].filter(Boolean).join(' · ')}{r.from.branch ? ' · ' : ''}{timeAgo(r.createdAt)}</div>
+                </div>
+                <div className="flex flex-wrap gap-2 flex-shrink-0">
+                  <Button onClick={() => open(r, 'accepted')}>Teacher can guide</Button>
+                  <Button variant="secondary" onClick={() => open(r, 'declined')}>Can’t take on</Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SectionCard>
+      {done.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold mb-3" style={{ color: tokens.ink }}>Answered</h2>
+          <SectionCard padded={false}>
+            <table className="w-full"><tbody>
+              {done.map((r) => (
+                <tr key={r.id} style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
+                  <td className={td} style={{ color: tokens.ink }}>{r.from.name}</td>
+                  <td className={td} style={{ color: tokens.inkSoft }}>{r.faculty.name}</td>
+                  <td className={td} style={{ color: tokens.inkSoft }}>{r.topic}</td>
+                  <td className={td}><StatusPill kind={r.status === 'accepted' ? 'approved' : 'closed'}>{r.status}</StatusPill></td>
+                </tr>
+              ))}
+            </tbody></table>
+          </SectionCard>
+        </div>
+      )}
+      {deciding && (
+        <Modal
+          title={deciding.status === 'accepted' ? 'Teacher can guide this student' : 'Teacher can’t take this on'}
+          onClose={() => setDeciding(null)}
+          footer={<><Button variant="secondary" onClick={() => setDeciding(null)}>Cancel</Button><Button onClick={submit} loading={saving}>Tell the student</Button></>}
+        >
+          <p className="text-sm mb-3" style={{ color: tokens.inkSoft }}>{deciding.request.from.name} will get a notification{deciding.status === 'accepted' ? '. Add when and where to meet, if you know.' : '. A short reason helps them pick another teacher.'}</p>
+          <Field label="Note for the student (optional)" htmlFor="guidance-note">
+            <TextArea id="guidance-note" rows={3} maxLength={300} value={note} onChange={(e) => setNote(e.target.value)} placeholder={deciding.status === 'accepted' ? 'e.g. Come by Tuesday 3 PM, Block A room 301.' : 'e.g. Already guiding three projects this semester.'} />
+          </Field>
+        </Modal>
       )}
     </div>
   )

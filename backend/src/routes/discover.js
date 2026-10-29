@@ -131,5 +131,11 @@ discoverRoutes.get('/matches', wrap(async (req, res) => {
 
   const shownPeople = people.map((m) => ({ ...m, item: personView(m.item.row, unis, undefined, m.item.profile) }))
 
-  res.json({ projects, startups, research, people: shownPeople, profileComplete: mine.length > 0 })
+  // Teachers on your campus whose research overlaps what you know: possible project guides.
+  const faculty = rank(candidates(req.user, 'faculty', 'campus').map((f) => {
+    const fit = coverage(mine, f.researchInterests)
+    return { item: f, score: fit.length * 2, reasons: fit.slice(0, 3).map((c) => `Researches ${c.required} — you list ${c.by}`) }
+  })).slice(0, 4)
+
+  res.json({ projects, startups, research, people: shownPeople, faculty, profileComplete: mine.length > 0 })
 }))

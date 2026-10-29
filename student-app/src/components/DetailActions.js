@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { request } from '../api'
 import { useAuth } from '../context/AuthContext'
+import { useApi } from '../hooks/useApi'
 import { useRelations } from '../hooks/useRelations'
 import { tokens as t } from '../theme'
 import { Button, Chip, MessageSheet, useToast } from './ui'
@@ -13,7 +14,8 @@ export function DetailActions({ kind, item }) {
   const { user } = useAuth()
   const toast = useToast()
   const rel = useRelations()
-  const [sheet, setSheet] = useState(null) // { type: 'peer'|'mentor'|'collab' }
+  const guidance = useApi(kind === 'faculty' ? '/me/guidance' : null)
+  const [sheet, setSheet] = useState(null) // { type: 'peer'|'mentor'|'collab'|'guidance' }
 
   const done = (message) => { setSheet(null); rel.reload(); toast.show(message, 'success') }
   const call = async (path, body) => {
@@ -66,6 +68,47 @@ export function DetailActions({ kind, item }) {
           onSubmit={async ({ message }) => {
             const err = await call('/connections', { to: item.id, kind: sheet.type, message })
             if (!err) done('Request sent')
+            return err
+          }}
+        />
+      </View>
+    )
+  }
+
+  if (kind === 'faculty') {
+    if (user.role !== 'student') return <Text style={styles.hint}>Sign up with your college email to ask a teacher for guidance.</Text>
+    const mine = (guidance.data ?? []).find((g) => g.faculty.id === item.id && g.status !== 'withdrawn')
+    const first = item.name.split(' ').slice(-1)[0]
+    return (
+      <View style={styles.wrap}>
+        {mine?.status === 'pending' ? (
+          <View style={styles.row}>
+            <Button label="Request sent" variant="secondary" disabled style={{ flex: 1 }} />
+            <Button label="Withdraw" variant="ghost" onPress={async () => { const err = await call(`/guidance/${mine.id}/withdraw`); if (err) toast.show(err, 'error'); else { guidance.reload(); toast.show('Request withdrawn') } }} />
+          </View>
+        ) : null}
+        {mine?.status === 'accepted' ? (
+          <View style={{ gap: 6 }}>
+            <Chip label="Teacher can guide you" tone="green" />
+            {mine.note ? <Text style={styles.hint}>{mine.note}</Text> : null}
+          </View>
+        ) : null}
+        {mine?.status === 'declined' ? <Text style={styles.hint}>{first} can’t take this on right now.{mine.note ? ` “${mine.note}”` : ''} Try another teacher whose work fits yours.</Text> : null}
+        {!mine || mine.status === 'declined' ? <Button label="Ask for guidance" icon="school-outline" onPress={() => setSheet({ type: 'guidance' })} /> : null}
+        <MessageSheet
+          visible={sheet?.type === 'guidance'}
+          title={`Ask ${item.name} for guidance`}
+          subtitle="Your name, branch, skills and college email are shared with the teacher so they can reply."
+          placeholder="What are you building or researching, and why this teacher?"
+          extraLabel="What do you want guidance on?"
+          extraPlaceholder="e.g. Final-year ML project"
+          extraRequired="Say what you want guidance on"
+          required={false}
+          submitLabel="Send request"
+          onClose={() => setSheet(null)}
+          onSubmit={async ({ message, extra }) => {
+            const err = await call(`/faculty/${item.id}/guidance`, { topic: extra, ...(message && { message }) })
+            if (!err) { setSheet(null); guidance.reload(); toast.show('Request sent', 'success') }
             return err
           }}
         />

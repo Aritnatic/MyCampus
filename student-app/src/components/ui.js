@@ -283,15 +283,17 @@ export function ToastProvider({ children }) {
 }
 
 // A bottom sheet that asks for a short message (connection requests, "ask to join"). Optional extra field.
-export function MessageSheet({ visible, title, subtitle, placeholder, submitLabel = 'Send', extraLabel, extraPlaceholder, required = true, onClose, onSubmit }) {
+export function MessageSheet({ visible, title, subtitle, placeholder, submitLabel = 'Send', extraLabel, extraPlaceholder, extraRequired, required = true, onClose, onSubmit }) {
   const [message, setMessage] = useState('')
   const [extra, setExtra] = useState('')
+  const [extraError, setExtraError] = useState(null)
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
-  useEffect(() => { if (visible) { setMessage(''); setExtra(''); setError(null); setBusy(false) } }, [visible])
+  useEffect(() => { if (visible) { setMessage(''); setExtra(''); setExtraError(null); setError(null); setBusy(false) } }, [visible])
 
   const send = async () => {
+    if (extraRequired && extra.trim().length < 3) return setExtraError(`${extraRequired} (at least 3 characters).`)
     if (required && !message.trim()) return setError('Add a short message so they know who you are.')
     setBusy(true)
     const err = await onSubmit({ message: message.trim(), extra: extra.trim() })
@@ -306,7 +308,7 @@ export function MessageSheet({ visible, title, subtitle, placeholder, submitLabe
         <View style={styles.sheet} accessibilityViewIsModal>
           <Text accessibilityRole="header" style={styles.sheetTitle}>{title}</Text>
           {subtitle ? <Text style={styles.sheetSub}>{subtitle}</Text> : null}
-          {extraLabel ? <Field label={extraLabel} value={extra} onChangeText={setExtra} placeholder={extraPlaceholder} maxLength={80} /> : null}
+          {extraLabel ? <Field label={extraLabel} value={extra} onChangeText={(v) => { setExtra(v); setExtraError(null) }} placeholder={extraPlaceholder} maxLength={extraRequired ? 120 : 80} error={extraError} /> : null}
           <Field label="Message" value={message} onChangeText={(v) => { setMessage(v.slice(0, 500)); setError(null) }} multiline placeholder={placeholder} error={error} hint={`${message.length}/500`} />
           <View style={{ flexDirection: 'row', gap: 10 }}>
             <Button label="Cancel" variant="secondary" onPress={onClose} style={{ flex: 1 }} />

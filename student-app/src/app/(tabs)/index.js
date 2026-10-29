@@ -25,7 +25,7 @@ const FILTERS = [
 function picks(matches) {
   if (!matches) return []
   const take = (list, kind, n) => list.slice(0, n).map((m) => ({ ...m, kind }))
-  return [...take(matches.projects, 'project', 2), ...take(matches.research, 'research', 1), ...take(matches.startups, 'startup', 1), ...take(matches.people, 'people', 1)]
+  return [...take(matches.projects, 'project', 2), ...take(matches.research, 'research', 1), ...take(matches.startups, 'startup', 1), ...take(matches.people, 'people', 1), ...take(matches.faculty ?? [], 'faculty', 1)]
 }
 
 function daysUntil(isoDate) {

@@ -12,6 +12,7 @@ const ICONS = {
   notice: 'newspaper-outline', result: 'ribbon-outline', exam: 'calendar-outline', event: 'ticket-outline', job: 'briefcase-outline',
   alert: 'warning-outline', announcement: 'megaphone-outline', connection_request: 'person-add-outline', connection_accepted: 'checkmark-circle-outline',
   collab_request: 'people-outline', collab_accepted: 'checkmark-circle-outline', collab_declined: 'close-circle-outline', event_seat: 'ticket-outline',
+  guidance_accepted: 'school-outline', guidance_declined: 'school-outline',
 }
 
 // Where tapping a notification should take you. Types without a screen yet just get marked read.
@@ -23,6 +24,7 @@ function routeFor(n) {
   if (n.type === 'job' && d.jobId) return `/discover/jobs/${d.jobId}`
   if ((n.type === 'collab_accepted' || n.type === 'collab_declined') && d.targetId) return `/discover/${d.targetKind === 'research' ? 'research' : `${d.targetKind}s`}/${d.targetId}`
   if (n.type === 'connection_accepted' && d.userId) return `/discover/people/${d.userId}`
+  if ((n.type === 'guidance_accepted' || n.type === 'guidance_declined') && d.facultyId) return `/discover/faculty/${d.facultyId}`
   return null
 }
 
