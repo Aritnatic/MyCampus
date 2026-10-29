@@ -1,6 +1,6 @@
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { tokens as t, radius } from '../theme'
+import { tokens as t, radius, themed } from '../theme'
 
 // Shared frame for sign-in, sign-up, verification and password reset.
 export function AuthShell({ title, subtitle, children, footer }) {
@@ -29,7 +29,7 @@ export function DevCode({ code, onUse }) {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: t.canvas },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logo: { width: 52, height: 52, borderRadius: radius.container, backgroundColor: t.violet, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
@@ -38,4 +38,4 @@ const styles = StyleSheet.create({
   sub: { color: t.inkSoft, fontSize: 15, lineHeight: 22, marginTop: 6 },
   footer: { marginTop: 22, alignItems: 'center', gap: 10 },
   dev: { color: t.yellowText, backgroundColor: t.yellowSoft, borderRadius: radius.button, padding: 10, fontSize: 12, textAlign: 'center', overflow: 'hidden' },
-})
+}))

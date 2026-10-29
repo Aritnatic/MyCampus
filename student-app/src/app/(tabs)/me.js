@@ -2,16 +2,18 @@ import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { request, SITE_URL } from '../../api'
-import { Avatar, Button, Card, Chip, PasswordSheet, SectionHeader, useToast } from '../../components/ui'
+import { Avatar, Button, Card, Chip, PasswordSheet, SectionHeader, Segmented, useToast } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
+import { useTheme } from '../../context/ThemeContext'
 import { saveJson } from '../../files'
 import { missingProfile } from '../../profileCompleteness'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 export default function Me() {
   const { user, signOut, deleteAccount } = useAuth()
   const router = useRouter()
   const toast = useToast()
+  const { choice, setChoice } = useTheme()
   const [deleting, setDeleting] = useState(false)
   const [exporting, setExporting] = useState(false)
   const gaps = missingProfile(user)
@@ -46,6 +48,13 @@ export default function Me() {
           <View style={styles.wrap}>{items.map((s) => <Chip key={s} label={s} tone={tone} />)}</View>
         </View>
       ))}
+
+      <SectionHeader title="Appearance" />
+      <Segmented
+        value={choice}
+        onChange={setChoice}
+        options={[{ value: 'system', label: 'System' }, { value: 'light', label: 'Light' }, { value: 'dark', label: 'Dark' }]}
+      />
 
       <View style={{ gap: 10, marginTop: 28 }}>
         <Button label="Edit profile" icon="create-outline" variant="secondary" onPress={() => router.push('/profile-edit')} />
@@ -85,7 +94,7 @@ export default function Me() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40 },
   head: { alignItems: 'center', marginBottom: 20, gap: 2 },
   name: { color: t.ink, fontSize: 22, fontWeight: '800', marginTop: 12 },
@@ -94,4 +103,4 @@ const styles = StyleSheet.create({
   cardTitle: { color: t.ink, fontSize: 16, fontWeight: '700' },
   body: { color: t.inkSoft, fontSize: 14, lineHeight: 21 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-})
+}))

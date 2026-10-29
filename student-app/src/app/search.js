@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { Async, Card, Field } from '../components/ui'
 import { useApi } from '../hooks/useApi'
 import { KIND_ICON, hrefFor } from '../links'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 const IDEAS = ['machine learning projects', 'hardware co-founder', 'internships for CSE', 'IoT research', 'data structures notes']
 
@@ -61,7 +61,7 @@ export default function Search() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   tryTitle: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
   idea: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 },
@@ -70,4 +70,4 @@ const styles = StyleSheet.create({
   icon: { width: 36, height: 36, borderRadius: 10, backgroundColor: t.violetSoft, alignItems: 'center', justifyContent: 'center' },
   title: { color: t.ink, fontSize: 15, fontWeight: '600' },
   sub: { color: t.inkFaint, fontSize: 12, marginTop: 2 },
-})
+}))

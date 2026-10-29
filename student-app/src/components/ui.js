@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Animated, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { tokens as t, radius } from '../theme'
+import { tokens as t, radius, themed } from '../theme'
 
 // ---------------------------------------------------------------------------
 // Surfaces
@@ -22,14 +22,14 @@ export function Card({ children, style, onPress, accessibilityLabel }) {
   )
 }
 
-const TONES = {
+const TONES = themed(() => ({
   violet: [t.violetSoft, t.violetText],
   green: [t.greenSoft, t.greenText],
   yellow: [t.yellowSoft, t.yellowText],
   blue: [t.blueSoft, t.blueText],
-  red: ['rgba(248, 113, 113, 0.14)', '#f87171'],
+  red: [t.redSoft, t.red],
   neutral: [t.sunken, t.inkSoft],
-}
+}))
 
 export function Chip({ label, tone = 'neutral', onRemove }) {
   const [bg, fg] = TONES[tone]
@@ -95,12 +95,12 @@ export function Avatar({ name = '?', size = 44 }) {
 // Actions & form fields
 // ---------------------------------------------------------------------------
 
-const BUTTONS = {
+const BUTTONS = themed(() => ({
   primary: { bg: t.violet, fg: '#fff', border: t.violet },
   secondary: { bg: 'transparent', fg: t.ink, border: t.hairline },
   ghost: { bg: 'transparent', fg: t.violetText, border: 'transparent' },
-  danger: { bg: 'transparent', fg: '#f87171', border: t.hairline },
-}
+  danger: { bg: 'transparent', fg: t.red, border: t.hairline },
+}))
 
 export function Button({ label, onPress, variant = 'primary', loading, disabled, icon, style, compact }) {
   const v = BUTTONS[variant]
@@ -135,7 +135,7 @@ export function Field({ label, error, hint, secure, style, inputRef, ...input })
   return (
     <View style={[{ gap: 6 }, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <View style={[styles.inputWrap, error && { borderColor: '#f87171' }]}>
+      <View style={[styles.inputWrap, error && { borderColor: t.red }]}>
         <TextInput
           ref={inputRef}
           style={[styles.input, input.multiline && { minHeight: 96, textAlignVertical: 'top' }]}
@@ -269,7 +269,7 @@ export function ToastProvider({ children }) {
   }, [opacity])
 
   const value = useMemo(() => ({ show }), [show])
-  const color = toast?.kind === 'error' ? '#f87171' : toast?.kind === 'success' ? t.greenText : t.ink
+  const color = toast?.kind === 'error' ? t.red : toast?.kind === 'success' ? t.greenText : t.ink
   return (
     <ToastContext.Provider value={value}>
       {children}
@@ -388,7 +388,7 @@ export const timeAgo = (iso) => {
   return formatDate(iso, { day: 'numeric', month: 'short' })
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   card: { backgroundColor: t.surface, borderRadius: radius.container, borderWidth: 1, borderColor: t.hairline, padding: 14 },
   chip: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.chip, alignSelf: 'flex-start' },
   chipText: { fontSize: 11, fontWeight: '600' },
@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
   label: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
   inputWrap: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.sunken, borderRadius: radius.button, borderWidth: 1, borderColor: t.hairline, paddingHorizontal: 14 },
   input: { flex: 1, color: t.ink, fontSize: 15, paddingVertical: 13 },
-  error: { color: '#f87171', fontSize: 12 },
+  error: { color: t.red, fontSize: 12 },
   hint: { color: t.inkFaint, fontSize: 12 },
   tagRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
@@ -419,4 +419,4 @@ const styles = StyleSheet.create({
   sheetSub: { color: t.inkSoft, fontSize: 13, lineHeight: 19, marginTop: -6 },
   toast: { position: 'absolute', left: 16, right: 16, bottom: 96, backgroundColor: t.surface, borderRadius: radius.button, borderWidth: 1, paddingVertical: 12, paddingHorizontal: 16 },
   toastText: { fontSize: 14, fontWeight: '600', textAlign: 'center' },
-})
+}))

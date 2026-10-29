@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext'
 import { useApi } from '../../hooks/useApi'
 import { KIND_ICON, hrefFor } from '../../links'
 import { missingProfile } from '../../profileCompleteness'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 const CATEGORY_TONE = { academic: 'violet', safety: 'yellow', placement: 'green', general: 'blue' }
 const byPinnedThenNewest = (a, b) => Number(b.pinned) - Number(a.pinned) || new Date(b.publishedAt) - new Date(a.publishedAt)
@@ -129,7 +129,7 @@ export default function Home() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { paddingTop: 16, paddingBottom: 40 },
   pad: { paddingHorizontal: 16 },
   hello: { color: t.ink, fontSize: 26, fontWeight: '800' },
@@ -139,4 +139,4 @@ const styles = StyleSheet.create({
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   itemTitle: { color: t.ink, fontSize: 15, fontWeight: '600', marginTop: 8, lineHeight: 21 },
   meta: { color: t.inkFaint, fontSize: 12, marginTop: 4 },
-})
+}))

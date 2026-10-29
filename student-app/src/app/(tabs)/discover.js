@@ -6,7 +6,7 @@ import { Async, Button, Card, Chip, Segmented } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { useApi } from '../../hooks/useApi'
 import { KINDS, KIND_ORDER } from '../../discovery'
-import { tokens as t, radius } from '../../theme'
+import { tokens as t, radius, themed } from '../../theme'
 
 export default function Discover() {
   const router = useRouter()
@@ -101,7 +101,7 @@ export default function Discover() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   pill: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: t.sunken },
   pillOn: { backgroundColor: t.violetSoft },
@@ -113,4 +113,4 @@ const styles = StyleSheet.create({
   blurb: { color: t.inkSoft, fontSize: 13, lineHeight: 19, marginTop: 6 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10 },
   empty: { color: t.inkFaint, textAlign: 'center', marginTop: 32 },
-})
+}))

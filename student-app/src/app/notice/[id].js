@@ -2,7 +2,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { ScrollView, StyleSheet, Text } from 'react-native'
 import { Async, Chip, RichText, formatDate } from '../../components/ui'
 import { useApi } from '../../hooks/useApi'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 export default function NoticeDetail() {
   const { id } = useLocalSearchParams()
@@ -24,8 +24,8 @@ export default function NoticeDetail() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40, gap: 12 },
   title: { color: t.ink, fontSize: 22, fontWeight: '800', lineHeight: 28 },
   meta: { color: t.inkFaint, fontSize: 12 },
-})
+}))

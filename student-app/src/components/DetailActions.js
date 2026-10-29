@@ -4,7 +4,7 @@ import { request } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useApi } from '../hooks/useApi'
 import { useRelations } from '../hooks/useRelations'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 import { Button, Chip, MessageSheet, useToast } from './ui'
 
 const TARGET_KIND = { projects: 'project', startups: 'startup', research: 'research' }
@@ -155,8 +155,8 @@ export function DetailActions({ kind, item }) {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   wrap: { gap: 10 },
   row: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   hint: { color: t.inkFaint, fontSize: 13, lineHeight: 19 },
-})
+}))

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { request } from '../api'
 import { Async, Button, Card, Chip, Field, useToast } from '../components/ui'
 import { useApi } from '../hooks/useApi'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 const PAD = 24
 const centre = (b) => ({ x: b.x + b.width / 2, y: b.y + b.height / 2 })
@@ -146,7 +146,7 @@ export default function CampusMap() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40, gap: 12 },
   body: { color: t.inkSoft, fontSize: 13, lineHeight: 19 },
   title: { color: t.ink, fontSize: 17, fontWeight: '800' },
@@ -158,4 +158,4 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   origin: { minHeight: 40, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 10, backgroundColor: t.sunken, borderWidth: 1, borderColor: t.hairline },
   originText: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
-})
+}))

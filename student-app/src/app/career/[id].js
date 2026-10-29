@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Async, Card, Chip, SectionHeader } from '../../components/ui'
 import { useApi } from '../../hooks/useApi'
 import { ReadinessBar } from '../career'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 export default function CareerDetail() {
   const { id } = useLocalSearchParams()
@@ -70,7 +70,7 @@ export default function CareerDetail() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 6 },
   icon: { fontSize: 36 },
   title: { color: t.ink, fontSize: 24, fontWeight: '800', marginTop: 6 },
@@ -82,4 +82,4 @@ const styles = StyleSheet.create({
   action: { color: t.inkSoft, fontSize: 13, lineHeight: 19 },
   have: { color: t.greenText, fontSize: 12, marginTop: 6 },
   need: { color: t.yellowText, fontSize: 12, marginTop: 2 },
-})
+}))

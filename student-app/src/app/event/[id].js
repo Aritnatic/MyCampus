@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { request } from '../../api'
 import { Async, Button, Card, Chip, RichText, formatDate, useToast } from '../../components/ui'
 import { useApi } from '../../hooks/useApi'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 export default function EventDetail() {
   const { id } = useLocalSearchParams()
@@ -73,11 +73,11 @@ export default function EventDetail() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40, gap: 14 },
   chips: { flexDirection: 'row', gap: 6 },
   title: { color: t.ink, fontSize: 22, fontWeight: '800', lineHeight: 28 },
   meta: { color: t.inkSoft, fontSize: 14 },
   hint: { color: t.inkFaint, fontSize: 13 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-})
+}))

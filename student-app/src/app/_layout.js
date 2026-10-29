@@ -6,6 +6,7 @@ import { activeAlerts, useAlerts } from '../alerts'
 import { AlertBanner } from '../components/AlertBanner'
 import { RealtimeBridge } from '../components/RealtimeBridge'
 import { AuthProvider, useAuth } from '../context/AuthContext'
+import { ThemeProvider, useTheme } from '../context/ThemeContext'
 import { ToastProvider } from '../components/ui'
 import { tokens as t } from '../theme'
 
@@ -14,6 +15,7 @@ const detail = (title) => ({ title, headerBackTitle: 'Back' })
 function RootStack() {
   const { user, ready } = useAuth()
   const insets = useSafeAreaInsets()
+  const { mode } = useTheme()
   useAlerts()
   const live = user ? activeAlerts() : []
   const banner = live[0]
@@ -21,7 +23,7 @@ function RootStack() {
 
   // The banner owns the top safe-area inset while it's showing, so screen headers don't add it twice.
   return (
-    <View style={{ flex: 1, backgroundColor: t.canvas }}>
+    <View key={mode} style={{ flex: 1, backgroundColor: t.canvas }}>
       {banner ? <AlertBanner alert={banner} count={live.length} /> : null}
       <SafeAreaInsetsContext.Provider value={banner ? { ...insets, top: 0 } : insets}>
         <Stack
@@ -65,13 +67,20 @@ function RootStack() {
   )
 }
 
+function ThemedStatusBar() {
+  const { mode } = useTheme()
+  return <StatusBar style={mode === 'dark' ? 'light' : 'dark'} />
+}
+
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <StatusBar style="light" />
-        <RootStack />
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <ThemedStatusBar />
+          <RootStack />
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }

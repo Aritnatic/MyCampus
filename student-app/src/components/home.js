@@ -1,18 +1,18 @@
 import { useState } from 'react'
 import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { tokens as t, radius } from '../theme'
+import { tokens as t, radius, themed } from '../theme'
 
 const PAD = 16
 const GAP = 10
 
 // Washed tile colours shared by the shortcut grid and the banners.
-const TONES = {
+const TONES = themed(() => ({
   violet: [t.violetSoft, t.violetText],
   green: [t.greenSoft, t.greenText],
   yellow: [t.yellowSoft, t.yellowText],
   blue: [t.blueSoft, t.blueText],
-}
+}))
 
 // Swipeable highlight cards: profile nudge, next exam, pinned notice, next event.
 // banners: [{ key, tone, icon, eyebrow, title, body, cta, onPress }]
@@ -108,7 +108,7 @@ export function FilterChips({ options, value, onChange }) {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.container, borderWidth: 1, padding: 16, minHeight: 132 },
   eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   bannerTitle: { color: t.ink, fontSize: 18, fontWeight: '800', lineHeight: 23 },
@@ -125,4 +125,4 @@ const styles = StyleSheet.create({
   filter: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: radius.pill, backgroundColor: t.sunken, borderWidth: 1, borderColor: t.hairline },
   filterOn: { backgroundColor: t.violet, borderColor: t.violet },
   filterText: { color: t.inkSoft, fontSize: 13, fontWeight: '700' },
-})
+}))

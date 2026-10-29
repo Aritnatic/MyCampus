@@ -2,7 +2,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { respondToAlert, useAlerts } from '../alerts'
 import { Button, Card, Chip, EmptyState, formatDate, timeAgo, useToast } from '../components/ui'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 const TONE = { critical: 'red', warning: 'yellow', info: 'blue' }
 
@@ -51,7 +51,7 @@ export default function Alerts() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   calm: { color: t.greenText, fontSize: 14, fontWeight: '600', marginBottom: 4 },
   top: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
   msg: { color: t.inkSoft, fontSize: 14, lineHeight: 21, marginTop: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
   done: { color: t.greenText, fontSize: 13, fontWeight: '700', marginTop: 12 },
-})
+}))

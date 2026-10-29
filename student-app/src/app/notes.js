@@ -7,7 +7,7 @@ import { Async, Button, Card, Chip, Field, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { openNoteFile } from '../files'
 import { useApi } from '../hooks/useApi'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 function Stars({ value, onPick, disabled }) {
   return (
@@ -106,7 +106,7 @@ export default function Notes() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   code: { color: t.violetText, fontSize: 12, fontWeight: '700' },
@@ -114,4 +114,4 @@ const styles = StyleSheet.create({
   meta: { color: t.inkSoft, fontSize: 12, marginTop: 4 },
   stars: { flexDirection: 'row', gap: 2 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
-})
+}))

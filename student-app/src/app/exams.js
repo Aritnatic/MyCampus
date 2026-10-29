@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Async, Card, Chip, Segmented, formatDate } from '../components/ui'
 import { useApi } from '../hooks/useApi'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 export default function Exams() {
   const [tab, setTab] = useState('timetable')
@@ -82,7 +82,7 @@ function Stat({ label, value }) {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40 },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   code: { color: t.violetText, fontSize: 12, fontWeight: '700' },
@@ -96,4 +96,4 @@ const styles = StyleSheet.create({
   subjectRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 1, borderTopColor: t.hairline2 },
   subjectName: { color: t.inkSoft, fontSize: 13, flex: 1, marginRight: 8 },
   grade: { color: t.greenText, fontSize: 13, fontWeight: '700' },
-})
+}))

@@ -44,7 +44,7 @@ export default function Login() {
       <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@college.edu.in" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="email" error={fieldErrors.email} />
       <Field label="Password" value={password} onChangeText={setPassword} secure placeholder="Your password" onSubmitEditing={submit} textContentType="password" autoComplete="password" error={fieldErrors.password} />
       {needsVerify ? (
-        <Text style={{ color: '#f87171', fontSize: 13 }} onPress={() => router.push({ pathname: '/verify', params: { email } })}>
+        <Text style={{ color: t.red, fontSize: 13 }} onPress={() => router.push({ pathname: '/verify', params: { email } })}>
           {error} <Text style={{ color: t.violetText, fontWeight: '700' }}>Enter your code</Text>
         </Text>
       ) : <FormError message={error} />}

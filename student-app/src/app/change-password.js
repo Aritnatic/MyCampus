@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text } from 'react-native'
 import { Button, Field, FormError, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 export default function ChangePassword() {
   const { changePassword } = useAuth()
@@ -41,7 +41,7 @@ export default function ChangePassword() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 18 },
   intro: { color: t.inkSoft, fontSize: 14, lineHeight: 21 },
-})
+}))

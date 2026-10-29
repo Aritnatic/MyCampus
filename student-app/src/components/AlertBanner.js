@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { respondToAlert } from '../alerts'
 import { useToast } from './ui'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 const SEVERITY = {
   critical: { bg: '#7f1d1d', fg: '#fecaca', icon: 'warning' },
@@ -52,7 +52,7 @@ export function AlertBanner({ alert, count }) {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   bar: { paddingHorizontal: 14, paddingBottom: 10, gap: 8 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 },
   title: { fontSize: 15, fontWeight: '800' },
@@ -61,4 +61,4 @@ const styles = StyleSheet.create({
   btn: { flex: 1, minHeight: 44, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   btnText: { color: '#fff', fontSize: 14, fontWeight: '800' },
   done: { fontSize: 13, fontWeight: '700' },
-})
+}))

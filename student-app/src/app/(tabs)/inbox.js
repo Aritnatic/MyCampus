@@ -6,7 +6,7 @@ import { request } from '../../api'
 import { Async, Avatar, Button, Card, Chip, Segmented, timeAgo, useToast } from '../../components/ui'
 import { useApi } from '../../hooks/useApi'
 import { setUnread } from '../../unread'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 const ICONS = {
   notice: 'newspaper-outline', result: 'ribbon-outline', exam: 'calendar-outline', event: 'ticket-outline', job: 'briefcase-outline',
@@ -179,7 +179,7 @@ export default function Inbox() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   row: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   title: { color: t.ink, fontSize: 15, fontWeight: '700', lineHeight: 21 },
@@ -187,4 +187,4 @@ const styles = StyleSheet.create({
   time: { color: t.inkFaint, fontSize: 11, marginTop: 6 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 12 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: t.violet, marginTop: 6 },
-})
+}))

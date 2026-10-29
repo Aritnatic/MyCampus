@@ -3,7 +3,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
 import { Button, Field, FormError, TagInput, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
-import { tokens as t, radius } from '../theme'
+import { tokens as t, radius, themed } from '../theme'
 
 const BRANCHES = [
   ['CSE', 'Computer Science & Engineering'], ['IT', 'Information Technology'], ['ECE', 'Electronics & Communication'],
@@ -109,7 +109,7 @@ export default function ProfileEdit() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 18 },
   intro: { color: t.inkSoft, fontSize: 14, lineHeight: 21 },
   label: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
@@ -120,5 +120,5 @@ const styles = StyleSheet.create({
   mentor: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: radius.container, borderWidth: 1, borderColor: t.hairline, padding: 14 },
   mentorTitle: { color: t.ink, fontSize: 15, fontWeight: '700' },
   hint: { color: t.inkFaint, fontSize: 12, lineHeight: 17, marginTop: 2 },
-  error: { color: '#f87171', fontSize: 13 },
-})
+  error: { color: t.red, fontSize: 13 },
+}))

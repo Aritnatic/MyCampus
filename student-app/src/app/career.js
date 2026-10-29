@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { Async, Card, Chip } from '../components/ui'
 import { useApi } from '../hooks/useApi'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 export function ReadinessBar({ value }) {
   return (
@@ -41,7 +41,7 @@ export default function Careers() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   intro: { color: t.inkSoft, fontSize: 14, lineHeight: 21, marginBottom: 6 },
   top: { flexDirection: 'row', gap: 12, alignItems: 'center' },
@@ -51,4 +51,4 @@ const styles = StyleSheet.create({
   track: { height: 6, borderRadius: 3, backgroundColor: t.sunken, overflow: 'hidden' },
   fill: { height: 6, backgroundColor: t.violet },
   hint: { color: t.inkFaint, fontSize: 12, marginTop: 6 },
-})
+}))

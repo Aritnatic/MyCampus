@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Card } from '../../components/ui'
-import { tokens as t } from '../../theme'
+import { tokens as t, themed } from '../../theme'
 
 // Everything tied to your own campus. More entries (map, career) land here as they're built.
 const ENTRIES = [
@@ -37,11 +37,11 @@ export default function Campus() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 40 },
   sub: { color: t.inkSoft, fontSize: 14, lineHeight: 20 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   icon: { width: 44, height: 44, borderRadius: 12, backgroundColor: t.violetSoft, alignItems: 'center', justifyContent: 'center' },
   title: { color: t.ink, fontSize: 16, fontWeight: '700' },
   body: { color: t.inkSoft, fontSize: 13, marginTop: 2 },
-})
+}))

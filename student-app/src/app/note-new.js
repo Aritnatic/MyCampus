@@ -6,7 +6,7 @@ import { request } from '../api'
 import { Button, Field, FormError, TagInput, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { MAX_NOTE_BYTES, NOTE_TYPES, uploadNoteFile } from '../files'
-import { tokens as t, radius } from '../theme'
+import { tokens as t, radius, themed } from '../theme'
 
 const readable = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`)
 
@@ -91,7 +91,7 @@ export default function NewNote() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 18 },
   label: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
   choiceRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   choiceText: { color: t.inkSoft, fontSize: 13, fontWeight: '600' },
   file: { color: t.ink, fontSize: 13 },
   hint: { color: t.inkFaint, fontSize: 12, lineHeight: 17 },
-  error: { color: '#f87171', fontSize: 12 },
+  error: { color: t.red, fontSize: 12 },
   visibility: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: t.surface, borderRadius: radius.container, borderWidth: 1, borderColor: t.hairline, padding: 14 },
   visTitle: { color: t.ink, fontSize: 15, fontWeight: '700' },
-})
+}))

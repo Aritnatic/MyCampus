@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { Async, Card, Chip, formatDate } from '../components/ui'
 import { useApi } from '../hooks/useApi'
-import { tokens as t } from '../theme'
+import { tokens as t, themed } from '../theme'
 
 export default function MyEvents() {
   const router = useRouter()
@@ -29,9 +29,9 @@ export default function MyEvents() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
   title: { color: t.ink, fontSize: 15, fontWeight: '700', marginTop: 8 },
   meta: { color: t.inkFaint, fontSize: 12, marginTop: 4 },
-})
+}))

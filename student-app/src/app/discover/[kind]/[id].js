@@ -4,7 +4,7 @@ import { Async, Card, Chip, RichText } from '../../../components/ui'
 import { useApi } from '../../../hooks/useApi'
 import { DetailActions } from '../../../components/DetailActions'
 import { KINDS } from '../../../discovery'
-import { tokens as t, radius } from '../../../theme'
+import { tokens as t, radius, themed } from '../../../theme'
 
 export default function DiscoverDetail() {
   const { kind, id } = useLocalSearchParams()
@@ -57,7 +57,7 @@ export default function DiscoverDetail() {
   )
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 48, gap: 14 },
   title: { color: t.ink, fontSize: 24, fontWeight: '800', lineHeight: 30 },
   sub: { color: t.inkSoft, fontSize: 14, marginTop: -8 },
@@ -70,4 +70,4 @@ const styles = StyleSheet.create({
   section: { color: t.ink, fontSize: 16, fontWeight: '700', marginTop: 6 },
   wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   li: { color: t.inkSoft, fontSize: 14, lineHeight: 20 },
-})
+}))
