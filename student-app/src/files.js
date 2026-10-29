@@ -45,7 +45,7 @@ export async function openNoteFile(note) {
   const file = new File(Paths.cache, name)
   if (file.exists) file.delete()
   file.create()
-  file.write(await res.bytes())
+  await file.write(await res.bytes())
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(file.uri, { mimeType: note.contentType, dialogTitle: note.title })
 }
 
@@ -61,6 +61,6 @@ export async function saveJson(filename, object) {
   const file = new File(Paths.cache, filename)
   if (file.exists) file.delete()
   file.create()
-  file.write(text)
+  await file.write(text)
   if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(file.uri, { mimeType: 'application/json', dialogTitle: 'Your MyCampus data' })
 }

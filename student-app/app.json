@@ -26,7 +26,8 @@
       "expo-router",
       "expo-status-bar",
       "expo-secure-store",
-      "expo-sharing"
+      "expo-sharing",
+      "expo-font"
     ],
     "scheme": "mycampus",
     "backgroundColor": "#0d0d0f"
