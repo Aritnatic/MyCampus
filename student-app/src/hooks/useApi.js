@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { request } from '../api'
+import { useAutoRefreshTick } from '../refresh'
 
 // Fetches `path` (skipped while null) and refetches when it changes.
 //
@@ -11,17 +12,23 @@ export function useApi(path) {
   const [state, setState] = useState({ path: null, data: null, error: null })
   const [tick, setTick] = useState(0)
   const [fetching, setFetching] = useState(false)
+  // Bumped when content may have changed (see refresh.js). Those refetches are quiet: no spinner, and a
+  // failed one (a blip offline) keeps showing what we have instead of replacing it with an error.
+  const auto = useAutoRefreshTick()
+  const seenAuto = useRef(auto)
 
   useEffect(() => {
     if (!path) return undefined
+    const quiet = seenAuto.current !== auto
+    seenAuto.current = auto
     let stale = false
-    setFetching(true)
+    if (!quiet) setFetching(true)
     request(path)
       .then((data) => !stale && setState({ path, data, error: null }))
-      .catch((e) => !stale && setState({ path, data: null, error: e.message }))
+      .catch((e) => !stale && setState((s) => (quiet && s.path === path && s.data ? s : { path, data: null, error: e.message })))
       .finally(() => !stale && setFetching(false))
     return () => { stale = true }
-  }, [path, tick])
+  }, [path, tick, auto])
 
   const reload = useCallback(() => setTick((n) => n + 1), [])
 
