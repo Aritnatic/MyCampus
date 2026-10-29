@@ -102,7 +102,7 @@ function AdminUsers() {
                   <td className={td}><StatusPill kind={a.status === 'active' ? 'approved' : 'closed'}>{a.status}</StatusPill></td>
                   <td className={`${td} text-right whitespace-nowrap`}>
                     {!me && isSuper && <button type="button" onClick={() => setEditing(a)} className="text-xs font-medium hover:underline mr-3" style={{ color: tokens.violetText }}>Edit<span className="sr-only"> {a.name}</span></button>}
-                    {!me && <button type="button" onClick={() => setToggling(a)} className="text-xs font-medium hover:underline" style={{ color: a.status === 'active' ? '#f87171' : tokens.violetText }}>{a.status === 'active' ? 'Suspend' : 'Reactivate'}<span className="sr-only"> {a.name}</span></button>}
+                    {!me && <button type="button" onClick={() => setToggling(a)} className="text-xs font-medium hover:underline" style={{ color: a.status === 'active' ? tokens.red : tokens.violetText }}>{a.status === 'active' ? 'Suspend' : 'Reactivate'}<span className="sr-only"> {a.name}</span></button>}
                   </td>
                 </tr>
               )
@@ -180,9 +180,9 @@ function AdminForm({ record, onClose, onSaved }) {
               </label>
             ))}
           </div>
-          {errors.permissions ? <p role="alert" className="text-xs mt-2" style={{ color: '#f87171' }}>{errors.permissions}</p> : null}
+          {errors.permissions ? <p role="alert" className="text-xs mt-2" style={{ color: tokens.red }}>{errors.permissions}</p> : null}
         </fieldset>
-        {errors.form ? <p role="alert" className="text-sm" style={{ color: '#f87171' }}>{errors.form}</p> : null}
+        {errors.form ? <p role="alert" className="text-sm" style={{ color: tokens.red }}>{errors.form}</p> : null}
         <div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" loading={busy}>{record ? 'Save changes' : 'Add admin'}</Button></div>
       </form>
     </Modal>
@@ -226,7 +226,7 @@ function Verification() {
           {domains.map((d) => (
             <li key={d} className="flex items-center justify-between px-3 py-2" style={{ background: tokens.sunken, borderRadius: 8 }}>
               <span className="text-sm font-mono" style={{ color: tokens.ink }}>@{d}</span>
-              <button type="button" disabled={busy || domains.length <= 1} onClick={() => save(domains.filter((x) => x !== d), `@${d} was removed.`)} aria-label={`Remove ${d}`} className="p-1.5 disabled:opacity-30 hover:bg-white/[0.05]" style={{ color: '#f87171', borderRadius: 6 }} title={domains.length <= 1 ? 'You need at least one domain' : 'Remove'}><Trash2 className="w-4 h-4" /></button>
+              <button type="button" disabled={busy || domains.length <= 1} onClick={() => save(domains.filter((x) => x !== d), `@${d} was removed.`)} aria-label={`Remove ${d}`} className="p-1.5 disabled:opacity-30 hover:bg-white/[0.05]" style={{ color: tokens.red, borderRadius: 6 }} title={domains.length <= 1 ? 'You need at least one domain' : 'Remove'}><Trash2 className="w-4 h-4" /></button>
             </li>
           ))}
         </ul>

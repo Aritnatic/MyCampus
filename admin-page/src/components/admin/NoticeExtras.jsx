@@ -48,7 +48,7 @@ export function AnnounceModal({ onClose }) {
           <div className="flex flex-wrap gap-3">{[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <label key={n} className="flex items-center gap-1.5 text-sm" style={{ color: tokens.ink }}><input type="checkbox" checked={v.semesters.includes(n)} onChange={() => toggle('semesters', n)} /> {n}</label>)}</div>
         </fieldset>
         <p className="text-sm px-3 py-2" style={{ background: tokens.sunken, borderRadius: 8, color: tokens.inkSoft }}>Will be sent to: <strong style={{ color: tokens.ink }}>{audience}</strong></p>
-        {errors.form ? <p role="alert" className="text-sm" style={{ color: '#f87171' }}>{errors.form}</p> : null}
+        {errors.form ? <p role="alert" className="text-sm" style={{ color: tokens.red }}>{errors.form}</p> : null}
         <div className="flex justify-end gap-2"><Button variant="secondary" onClick={onClose}>Cancel</Button><Button type="submit" loading={busy}>Send now</Button></div>
       </form>
     </Modal>

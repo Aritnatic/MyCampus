@@ -283,7 +283,7 @@
      Visible but unobtrusive. */
   .admin-scrollbar-dark {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    scrollbar-color: var(--thumb) transparent;
   }
 
   .admin-scrollbar-dark::-webkit-scrollbar {
@@ -296,7 +296,7 @@
   }
 
   .admin-scrollbar-dark::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.22);
+    background-color: var(--thumb);
     border-radius: 3px;
   }
 
@@ -339,4 +339,17 @@
   .animate-in {
     animation: fadeIn 0.2s ease-out forwards;
   }
+}
+
+/* Light theme: the dark UI uses Tailwind's white/NN hover washes, which vanish on a light surface.
+   Re-point them at the palette's own wash (black on light). Login pages keep their own styling. */
+[data-theme='light'] .hover\:bg-white\/5:hover,
+[data-theme='light'] .hover\:bg-white\/\[0\.02\]:hover,
+[data-theme='light'] .hover\:bg-white\/\[0\.03\]:hover,
+[data-theme='light'] .hover\:bg-white\/\[0\.04\]:hover,
+[data-theme='light'] .hover\:bg-white\/\[0\.05\]:hover {
+  background-color: var(--wash);
+}
+[data-theme='light'] .bg-white\/5.animate-pulse {
+  background-color: var(--wash);
 }

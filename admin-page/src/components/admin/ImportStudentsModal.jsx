@@ -112,7 +112,7 @@ export default function ImportStudentsModal({ onClose, onImported }) {
         </label>
         <button type="button" onClick={download} className="text-xs inline-flex items-center gap-1 hover:underline" style={{ color: tokens.violetText }}><Download className="w-3.5 h-3.5" aria-hidden /> Download a template</button>
       </div>
-      {error ? <p role="alert" className="text-sm mb-3" style={{ color: '#f87171' }}>{error}</p> : null}
+      {error ? <p role="alert" className="text-sm mb-3" style={{ color: tokens.red }}>{error}</p> : null}
       {busy && !report ? <p className="text-sm" style={{ color: tokens.inkSoft }}>Checking the file…</p> : null}
       {report && (
         <div className="space-y-4">

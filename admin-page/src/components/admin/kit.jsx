@@ -38,16 +38,16 @@ export function Field({ label, required, error, hint, htmlFor, children }) {
         {label} {required && <span style={{ color: tokens.violet }} aria-hidden>*</span>}
       </label>
       {children}
-      {error ? <p role="alert" className="text-xs mt-1" style={{ color: '#f87171' }}>{error}</p> : hint ? <p className="text-xs mt-1" style={{ color: tokens.inkFaint }}>{hint}</p> : null}
+      {error ? <p role="alert" className="text-xs mt-1" style={{ color: tokens.red }}>{error}</p> : hint ? <p className="text-xs mt-1" style={{ color: tokens.inkFaint }}>{hint}</p> : null}
     </div>
   )
 }
 
 export const TextInput = React.forwardRef(function TextInput({ invalid, ...props }, ref) {
-  return <input ref={ref} className="w-full px-3 h-9 text-sm outline-none" style={{ ...control, ...(invalid && { borderColor: '#f87171' }) }} aria-invalid={invalid || undefined} {...props} />
+  return <input ref={ref} className="w-full px-3 h-9 text-sm outline-none" style={{ ...control, ...(invalid && { borderColor: tokens.red }) }} aria-invalid={invalid || undefined} {...props} />
 })
 export function TextArea({ invalid, ...props }) {
-  return <textarea className="w-full px-3 py-2 text-sm outline-none resize-y" style={{ ...control, ...(invalid && { borderColor: '#f87171' }) }} aria-invalid={invalid || undefined} {...props} />
+  return <textarea className="w-full px-3 py-2 text-sm outline-none resize-y" style={{ ...control, ...(invalid && { borderColor: tokens.red }) }} aria-invalid={invalid || undefined} {...props} />
 }
 export function Select({ children, ...props }) {
   return <select className="w-full px-3 h-9 text-sm outline-none" style={control} {...props}>{children}</select>
@@ -63,7 +63,7 @@ export function Button({ children, onClick, variant = 'primary', type = 'button'
   const styles = {
     primary: { background: tokens.violet, color: '#fff', border: `1px solid ${tokens.violet}` },
     secondary: { background: 'transparent', color: tokens.ink, border: `1px solid ${tokens.hairline}` },
-    danger: { background: 'transparent', color: '#f87171', border: `1px solid ${tokens.hairline}` },
+    danger: { background: 'transparent', color: tokens.red, border: `1px solid ${tokens.hairline}` },
     dangerSolid: { background: '#b91c1c', color: '#fff', border: '1px solid #b91c1c' },
   }[variant]
   return (
@@ -97,7 +97,7 @@ export function Loading({ label = 'Loading…' }) {
 export function ErrorState({ message, onRetry }) {
   return (
     <div className="flex flex-col items-center gap-3 py-14 text-center" role="alert">
-      <AlertTriangle className="w-6 h-6" style={{ color: '#f87171' }} aria-hidden />
+      <AlertTriangle className="w-6 h-6" style={{ color: tokens.red }} aria-hidden />
       <p className="text-sm max-w-md" style={{ color: tokens.ink }}>{message}</p>
       {onRetry ? <Button variant="secondary" onClick={onRetry}>Try again</Button> : null}
     </div>

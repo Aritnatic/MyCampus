@@ -119,7 +119,7 @@ export default function AlertsPage() {
             <Field label="Headline" required error={errors.title} htmlFor="alert-title"><TextInput id="alert-title" value={form.title} onChange={set('title')} maxLength={120} placeholder="e.g. Fire alarm in Block A" invalid={!!errors.title} /></Field>
             <Field label="What should people do?" required error={errors.message} htmlFor="alert-msg" hint="Short and specific — this is shown on the lock screen and in the app."><TextArea id="alert-msg" rows={3} value={form.message} onChange={set('message')} maxLength={1000} placeholder="Leave by the nearest exit and gather at the Central Fountain." invalid={!!errors.message} /></Field>
             <Field label="Where (optional)" htmlFor="alert-loc"><TextInput id="alert-loc" value={form.location} onChange={set('location')} maxLength={120} placeholder="e.g. Block A" /></Field>
-            {errors.form ? <p role="alert" className="text-sm" style={{ color: '#f87171' }}>{errors.form}</p> : null}
+            {errors.form ? <p role="alert" className="text-sm" style={{ color: tokens.red }}>{errors.form}</p> : null}
             <div className="flex justify-end gap-2 pt-1">
               <Button variant="secondary" onClick={() => setComposing(false)}>Cancel</Button>
               <Button type="submit">Review and send</Button>
@@ -177,11 +177,11 @@ function ActiveAlert({ alert, onResolve }) {
 
       <div className="mt-5" style={{ borderTop: `1px solid ${tokens.hairline}`, paddingTop: 16 }}>
         <h4 className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: tokens.inkFaint }}>Roll call</h4>
-        {roll.loading ? <p className="text-sm" style={{ color: tokens.inkSoft }}>Loading responses…</p> : roll.error ? <p className="text-sm" style={{ color: '#f87171' }}>{roll.error}</p> : (
+        {roll.loading ? <p className="text-sm" style={{ color: tokens.inkSoft }}>Loading responses…</p> : roll.error ? <p className="text-sm" style={{ color: tokens.red }}>{roll.error}</p> : (
           <>
             <div className="grid grid-cols-3 gap-3 mb-3">
               <Stat label="Safe" value={r.safe} color={tokens.greenText} icon={CheckCircle2} />
-              <Stat label="Need help" value={r.needHelp.length} color="#f87171" icon={LifeBuoy} />
+              <Stat label="Need help" value={r.needHelp.length} color={tokens.red} icon={LifeBuoy} />
               <Stat label="Not responded" value={r.notResponded} color={tokens.inkSoft} icon={Megaphone} />
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: tokens.sunken }} role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Students who have responded">
@@ -189,8 +189,8 @@ function ActiveAlert({ alert, onResolve }) {
             </div>
             <p className="text-xs mt-1.5" style={{ color: tokens.inkFaint }}>{answered} of {r.total} students have responded</p>
             {r.needHelp.length > 0 && (
-              <div className="mt-4 p-3" style={{ background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.35)', borderRadius: 10 }} role="alert">
-                <p className="text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: '#f87171' }}><AlertTriangle className="w-3.5 h-3.5" aria-hidden /> Asked for help</p>
+              <div className="mt-4 p-3" style={{ background: tokens.redSoft, border: `1px solid `, borderRadius: 10 }} role="alert">
+                <p className="text-xs font-semibold mb-1.5 flex items-center gap-1.5" style={{ color: tokens.red }}><AlertTriangle className="w-3.5 h-3.5" aria-hidden /> Asked for help</p>
                 <ul className="text-sm space-y-0.5" style={{ color: tokens.ink }}>
                   {r.needHelp.map((p) => <li key={p.id}>{p.name} <span style={{ color: tokens.inkFaint }}>· {timeAgo(p.at)}</span></li>)}
                 </ul>

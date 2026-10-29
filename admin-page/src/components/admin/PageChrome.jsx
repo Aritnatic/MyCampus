@@ -34,7 +34,7 @@ const PILL_STYLES = {
   urgent:   { bg: tokens.violetSoft, border: tokens.violet, text: tokens.violetText },
   info:     { bg: tokens.blueSoft,   border: tokens.blue,   text: tokens.blueText },
   warning:  { bg: tokens.yellowSoft, border: tokens.yellow, text: tokens.yellowText },
-  danger:   { bg: 'rgba(248, 113, 113, 0.14)', border: '#f87171', text: '#f87171' },
+  danger:   { bg: tokens.redSoft, border: tokens.red, text: tokens.red },
   default:  { bg: tokens.sunken,     border: tokens.hairline, text: tokens.inkSoft },
 }
 

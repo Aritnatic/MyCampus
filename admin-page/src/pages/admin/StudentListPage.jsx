@@ -92,7 +92,7 @@ export default function StudentListPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Tile label="Registered" value={summary?.total} icon={Users} color={tokens.accent} bg={tokens.violetSoft} />
           <Tile label="Active" value={summary?.active} icon={UserCheck} color={tokens.green} bg={tokens.greenSoft} />
-          <Tile label="Suspended" value={summary?.suspended} icon={UserX} color="#f87171" bg="rgba(248,113,113,0.14)" />
+          <Tile label="Suspended" value={summary?.suspended} icon={UserX} color={tokens.red} bg={tokens.redSoft} />
           <Tile label="Email not confirmed" value={summary?.unverified} icon={ShieldCheck} color={tokens.yellow} bg={tokens.yellowSoft} />
         </div>
 
@@ -132,7 +132,7 @@ export default function StudentListPage() {
                           {!s.verified ? <StatusPill kind="pending">Unconfirmed</StatusPill> : <StatusPill kind={s.status === 'active' ? 'approved' : 'closed'}>{s.status}</StatusPill>}
                         </td>
                         <td className={`${td} text-right`}>
-                          <button type="button" onClick={() => setToggling(s)} className="text-xs font-medium hover:underline" style={{ color: s.status === 'active' ? '#f87171' : tokens.violetText }}>
+                          <button type="button" onClick={() => setToggling(s)} className="text-xs font-medium hover:underline" style={{ color: s.status === 'active' ? tokens.red : tokens.violetText }}>
                             {s.status === 'active' ? 'Suspend' : 'Reactivate'}<span className="sr-only"> {s.name}</span>
                           </button>
                         </td>

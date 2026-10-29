@@ -128,7 +128,7 @@ function Crud({ cfg }) {
                   {cfg.columns.map(([label, cell]) => <td key={label} className={td} style={{ color: tokens.inkSoft }}>{cell(r)}</td>)}
                   <td className={`${td} text-right whitespace-nowrap`}>
                     <button type="button" onClick={() => setEditing(r)} aria-label={`Edit ${r.name ?? r.title}`} className="p-1.5 hover:bg-white/[0.05]" style={{ color: tokens.inkSoft, borderRadius: 6 }}><Pencil className="w-4 h-4" /></button>
-                    <button type="button" onClick={() => setDeleting(r)} aria-label={`Delete ${r.name ?? r.title}`} className="p-1.5 hover:bg-white/[0.05]" style={{ color: '#f87171', borderRadius: 6 }}><Trash2 className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => setDeleting(r)} aria-label={`Delete ${r.name ?? r.title}`} className="p-1.5 hover:bg-white/[0.05]" style={{ color: tokens.red, borderRadius: 6 }}><Trash2 className="w-4 h-4" /></button>
                   </td>
                 </tr>
               ))}
@@ -189,7 +189,7 @@ function RecordForm({ cfg, record, onClose, onSaved }) {
             </div>
           ))}
         </div>
-        {errors.form ? <p role="alert" className="text-sm mt-4" style={{ color: '#f87171' }}>{errors.form}</p> : null}
+        {errors.form ? <p role="alert" className="text-sm mt-4" style={{ color: tokens.red }}>{errors.form}</p> : null}
         <div className="flex justify-end gap-2 mt-5">
           <Button variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" loading={busy}>{record ? 'Save changes' : `Add ${cfg.noun}`}</Button>

@@ -12,6 +12,9 @@ import {
   ChevronRight,
   Plus,
   Check,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { getNoticesByUniversity } from '../../data/notices'
@@ -19,8 +22,30 @@ import { getEventsByUniversity, getPendingEvents } from '../../data/events'
 import { getExamsByUniversity, getResultsByUniversity } from '../../data/exams'
 import { getJobsByUniversity } from '../../data/placements'
 import { formatRelative } from '../../utils/format'
-import { tokens, radius } from '../../theme'
+import { tokens, radius, setThemeChoice, useThemeChoice } from '../../theme'
 import { useToast } from '../feedback/Toast'
+
+// System → Light → Dark → System, one click at a time.
+const THEME_NEXT = { system: 'light', light: 'dark', dark: 'system' }
+const THEME_ICON = { system: Monitor, light: Sun, dark: Moon }
+const THEME_LABEL = { system: 'Match system', light: 'Light', dark: 'Dark' }
+
+function ThemeToggle() {
+  const choice = useThemeChoice()
+  const Icon = THEME_ICON[choice]
+  return (
+    <button
+      type="button"
+      onClick={() => setThemeChoice(THEME_NEXT[choice])}
+      className="w-9 h-9 flex items-center justify-center smooth smooth-press hover:bg-white/5"
+      style={{ color: tokens.inkSoft, borderRadius: radius.button }}
+      aria-label={`Theme: ${THEME_LABEL[choice]}. Click to switch to ${THEME_LABEL[THEME_NEXT[choice]]}.`}
+      title={`Theme: ${THEME_LABEL[choice]}`}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
+  )
+}
 
 const NOTIF_META = {
   notice: { route: '/admin/notices-events?tab=notices' },
@@ -194,6 +219,8 @@ export function AdminHeader() {
 
       {/* Right cluster */}
       <div className="flex items-center gap-1.5">
+        <ThemeToggle />
+
         {/* Share (secondary CTA) — copies current page URL to clipboard */}
         <button
           type="button"
