@@ -165,7 +165,9 @@ export default function Inbox() {
       renderItem={({ item: n }) => (
         <Card onPress={() => open(n)} accessibilityLabel={`${n.read ? '' : 'Unread. '}${n.title}`} style={!n.read && { borderColor: t.violet }}>
           <View style={styles.row}>
-            <Ionicons name={ICONS[n.type] ?? 'notifications-outline'} size={20} color={n.read ? t.inkFaint : t.violetText} />
+            <View style={[styles.iconTile, n.read && { backgroundColor: t.sunken }]}>
+              <Ionicons name={ICONS[n.type] ?? 'notifications-outline'} size={20} color={n.read ? t.inkFaint : t.violetText} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.title, n.read && { color: t.inkSoft, fontWeight: '500' }]}>{n.title}</Text>
               {n.body ? <Text style={styles.body} numberOfLines={2}>{n.body}</Text> : null}
@@ -180,6 +182,7 @@ export default function Inbox() {
 }
 
 const styles = themed(() => StyleSheet.create({
+  iconTile: { width: 40, height: 40, borderRadius: 12, backgroundColor: t.violetSoft, alignItems: 'center', justifyContent: 'center' },
   list: { padding: 16, paddingBottom: 40, gap: 10 },
   row: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
   title: { color: t.ink, fontSize: 15, fontWeight: '700', lineHeight: 21 },

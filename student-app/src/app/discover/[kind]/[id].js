@@ -1,73 +1,84 @@
+import { Linking, ScrollView, StyleSheet, View } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
-import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
-import { Async, Card, Chip, RichText } from '../../../components/ui'
-import { useApi } from '../../../hooks/useApi'
+import { Async, RichText, formatDate } from '../../../components/ui'
+import { BulletList, InfoRow, Panel, ProfileHero, TagGroup } from '../../../components/profile'
 import { DetailActions } from '../../../components/DetailActions'
+import { useApi } from '../../../hooks/useApi'
 import { KINDS } from '../../../discovery'
-import { tokens as t, radius, themed } from '../../../theme'
+import { tokens as t, themed } from '../../../theme'
 
+const BADGE_TONE = { Verified: 'green' }
+// Dates in the stat strip are short ("Apr 2026") so they fit one line.
+const statValue = (v) => (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}/.test(v) ? formatDate(v, { month: 'short', year: 'numeric' }) : v)
+const GROUP_ICON = {
+  Skills: 'construct-outline', Interests: 'heart-outline', 'Looking for': 'search-outline', Achievements: 'trophy-outline',
+  Tech: 'code-slash-outline', Team: 'people-outline', 'Open roles': 'briefcase-outline', Founders: 'people-outline', Stipend: 'cash-outline',
+  'Required skills': 'construct-outline', 'Preferred skills': 'sparkles-outline', Eligibility: 'checkmark-done-outline', Pay: 'cash-outline',
+  Requirements: 'list-outline', 'Eligible branches': 'git-branch-outline', 'Research interests': 'flask-outline', Qualifications: 'ribbon-outline', Projects: 'rocket-outline',
+}
+
+// The page for one person, project, startup, research opening, job or teacher.
 export default function DiscoverDetail() {
   const { kind, id } = useLocalSearchParams()
   const { data: item, loading, error, reload } = useApi(`/discover/${kind}/${id}`)
-  if (!item) {
+  const k = KINDS[kind]
+  if (!item || !k) {
     return (
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <Async loading={loading} error={error} onRetry={reload} />
+      <ScrollView contentContainerStyle={styles.pad}>
+        <Async loading={loading} error={error ?? (!k ? 'That page doesn’t exist.' : null)} onRetry={reload} />
       </ScrollView>
     )
   }
-  const d = KINDS[kind].detail(item)
+  const d = k.detail(item)
+  const isPerson = kind === 'people'
+  const badges = [
+    d.badge && { label: d.badge, tone: BADGE_TONE[d.badge] ?? 'violet' },
+    isPerson && item.mentor?.open && { label: 'Open to mentor', tone: 'violet' },
+    isPerson && item._uni?.short && { label: item._uni.short, tone: 'blue' },
+  ].filter(Boolean)
 
   return (
     <ScrollView contentContainerStyle={styles.scroll}>
-      {d.badge ? <Chip label={d.badge} tone="green" /> : null}
-      <Text style={styles.title}>{d.title}</Text>
-      <Text style={styles.sub}>{d.subtitle}</Text>
+      <ProfileHero
+        name={isPerson ? item.name : undefined}
+        icon={k.icon}
+        tone={k.tone}
+        title={d.title}
+        subtitle={d.subtitle}
+        badges={badges}
+        stats={d.facts.map(([label, value]) => ({ label, value: statValue(value) }))}
+      />
 
-      <View style={styles.facts}>
-        {d.facts.map(([label, value]) => (
-          <View key={label} style={styles.fact}>
-            <Text style={styles.factValue} numberOfLines={1}>{String(value ?? '—')}</Text>
-            <Text style={styles.factLabel}>{label}</Text>
-          </View>
-        ))}
+      <View style={styles.pad}>
+        <DetailActions kind={kind} item={item} />
+
+        {d.body ? <Panel title={isPerson ? 'About' : 'Overview'} icon="document-text-outline"><RichText text={d.body} /></Panel> : null}
+
+        {d.email ? (
+          <Panel title="Contact" icon="mail-outline" style={{ gap: 14 }}>
+            <InfoRow icon="mail-outline" label="Email" value={d.email} onPress={() => Linking.openURL(`mailto:${d.email}`)} />
+            <InfoRow icon="location-outline" label="Office" value={item.office} />
+            <InfoRow icon="time-outline" label="Availability" value={item.availability} />
+          </Panel>
+        ) : null}
+
+        {isPerson && item.mentor?.open && item.mentor.topics?.length > 0 ? (
+          <Panel title="Can mentor you on" icon="school-outline"><TagGroup items={item.mentor.topics} tone="violet" /></Panel>
+        ) : null}
+
+        {d.groups
+          .filter((g) => g.items?.length && !(d.email && g.title === 'Availability'))
+          .map((g) => (
+            <Panel key={g.title} title={g.title} icon={GROUP_ICON[g.title] ?? 'ellipse-outline'}>
+              {g.list ? <BulletList items={g.items} /> : <TagGroup items={g.items} tone={g.tone} />}
+            </Panel>
+          ))}
       </View>
-
-      <DetailActions kind={kind} item={item} />
-
-      {d.email ? (
-        <Pressable onPress={() => Linking.openURL(`mailto:${d.email}`)} style={styles.cta}>
-          <Text style={styles.ctaText}>Email {d.email}</Text>
-        </Pressable>
-      ) : null}
-
-      <RichText text={d.body} />
-
-      {d.groups.filter((g) => g.items?.length).map((g) => (
-        <View key={g.title} style={{ gap: 8 }}>
-          <Text style={styles.section}>{g.title}</Text>
-          {g.list ? (
-            <Card style={{ gap: 8 }}>{g.items.map((x) => <Text key={x} style={styles.li}>• {x}</Text>)}</Card>
-          ) : (
-            <View style={styles.wrap}>{g.items.map((x) => <Chip key={x} label={x} tone={g.tone} />)}</View>
-          )}
-        </View>
-      ))}
     </ScrollView>
   )
 }
 
 const styles = themed(() => StyleSheet.create({
-  scroll: { padding: 16, paddingBottom: 48, gap: 14 },
-  title: { color: t.ink, fontSize: 24, fontWeight: '800', lineHeight: 30 },
-  sub: { color: t.inkSoft, fontSize: 14, marginTop: -8 },
-  facts: { flexDirection: 'row', gap: 8 },
-  fact: { flex: 1, backgroundColor: t.surface, borderWidth: 1, borderColor: t.hairline, borderRadius: 10, padding: 10, alignItems: 'center' },
-  factValue: { color: t.ink, fontSize: 14, fontWeight: '700' },
-  factLabel: { color: t.inkFaint, fontSize: 11, marginTop: 2 },
-  cta: { backgroundColor: t.violet, borderRadius: radius.button, paddingVertical: 13, alignItems: 'center' },
-  ctaText: { color: '#fff', fontWeight: '700' },
-  section: { color: t.ink, fontSize: 16, fontWeight: '700', marginTop: 6 },
-  wrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  li: { color: t.inkSoft, fontSize: 14, lineHeight: 20 },
+  scroll: { paddingBottom: 48 },
+  pad: { padding: 16, gap: 12 },
 }))

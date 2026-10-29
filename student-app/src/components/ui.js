@@ -22,7 +22,7 @@ export function Card({ children, style, onPress, accessibilityLabel }) {
   )
 }
 
-const TONES = themed(() => ({
+export const TONES = themed(() => ({
   violet: [t.violetSoft, t.violetText],
   green: [t.greenSoft, t.greenText],
   yellow: [t.yellowSoft, t.yellowText],

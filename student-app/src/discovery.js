@@ -7,6 +7,8 @@ export const KINDS = {
   people: {
     label: 'People',
     icon: 'people-outline',
+    tone: 'violet',
+    hint: 'Find peers and mentors who share your skills.',
     summary: (s) => ({
       title: s.name,
       subtitle: `${s.year >= 4 ? 'Mentor · ' : ''}${branchCode(s.branch)} · Year ${s.year} · ${s._uni?.short}`,
@@ -31,6 +33,8 @@ export const KINDS = {
   projects: {
     label: 'Projects',
     icon: 'rocket-outline',
+    tone: 'blue',
+    hint: 'Join student projects or start your own.',
     summary: (p) => ({
       title: p.title,
       subtitle: `${p.category} · ${p.stage} · ${p._uni?.short}`,
@@ -54,6 +58,8 @@ export const KINDS = {
   startups: {
     label: 'Startups',
     icon: 'bulb-outline',
+    tone: 'yellow',
+    hint: 'Student startups and the roles they need.',
     summary: (s) => ({
       title: s.name,
       subtitle: `${s.sector} · ${s.stage} · ${s._uni?.short}`,
@@ -77,6 +83,8 @@ export const KINDS = {
   research: {
     label: 'Research',
     icon: 'flask-outline',
+    tone: 'green',
+    hint: 'Research openings across universities.',
     summary: (r) => ({
       title: r.title,
       subtitle: `${r.supervisor} · ${r._uni?.short} · ${r.status}`,
@@ -101,6 +109,8 @@ export const KINDS = {
   jobs: {
     label: 'Jobs',
     icon: 'briefcase-outline',
+    tone: 'blue',
+    hint: 'Internships and jobs, with the skills they want.',
     summary: (j) => ({
       title: j.title,
       subtitle: `${j.company} · ${j.type} · ${j.mode}`,
@@ -125,6 +135,8 @@ export const KINDS = {
   faculty: {
     label: 'Faculty',
     icon: 'school-outline',
+    tone: 'violet',
+    hint: 'Teachers on your campus and what they research.',
     summary: (f) => ({
       title: f.name,
       subtitle: `${f.designation} · ${f.department}`,
@@ -136,7 +148,7 @@ export const KINDS = {
       subtitle: `${f.designation} · ${f.department}`,
       badge: f.verified ? 'Verified' : null,
       body: f.bio,
-      facts: [['Publications', f.publications], ['Citations', f.citations], ['Office', f.office]],
+      facts: [['Publications', f.publications], ['Citations', f.citations], ['Projects', f.projects?.length ?? 0]],
       email: f.email,
       groups: [
         { title: 'Availability', items: [f.availability], list: true },

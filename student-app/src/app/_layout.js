@@ -58,6 +58,7 @@ function RootStack() {
             <Stack.Screen name="career" options={detail('Career paths')} />
             <Stack.Screen name="career/[id]" options={detail('Career path')} />
             <Stack.Screen name="my-events" options={detail('My events')} />
+            <Stack.Screen name="discover/[kind]/index" options={detail('Discover')} />
             <Stack.Screen name="discover/[kind]/[id]" options={detail('Details')} />
           </Stack.Protected>
         </Stack>
