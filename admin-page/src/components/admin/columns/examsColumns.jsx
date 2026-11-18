@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate, getRelativeDate } from '../../../utils/format'
-import { BookOpen, Calendar, Plus, Edit, Trash2, Eye, Upload, AlertTriangle, Clock } from 'lucide-react'
+import { BookOpen, Calendar, Plus, Edit, Trash2, Eye, Upload, AlertTriangle, Clock, BadgeCheck, BarChart3 } from 'lucide-react'
 
 export const EXAM_STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
@@ -186,8 +186,8 @@ export function createExamStats(data) {
     { key: 'total', label: 'Total Exams', value: total, trend: 0, icon: () => <BookOpen className="w-5 h-5 text-primary-600" /> },
     { key: 'scheduled', label: 'Scheduled', value: scheduled, trend: 0, icon: () => <Calendar className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'ongoing', label: 'Ongoing', value: ongoing, trend: 0, icon: () => <Clock className="w-5 h-5 text-info-600" />, iconBg: 'bg-info-100' },
-    { key: 'completed', label: 'Completed', value: completed, trend: 0, icon: () => <span className="w-5 h-5 text-success-600">✓</span>, iconBg: 'bg-success-100' },
-    { key: 'results', label: 'Results Published', value: resultsPublished, trend: 0, icon: () => <span className="w-5 h-5 text-primary-600">📊</span>, iconBg: 'bg-primary-100' },
+    { key: 'completed', label: 'Completed', value: completed, trend: 0, icon: () => <BadgeCheck className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
+    { key: 'results', label: 'Results Published', value: resultsPublished, trend: 0, icon: () => <BarChart3 className="w-5 h-5 text-primary-600" />, iconBg: 'bg-primary-100' },
   ]
 }
 

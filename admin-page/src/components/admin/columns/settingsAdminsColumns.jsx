@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate, getRelativeDate } from '../../../utils/format'
-import { Users, Shield, Lock, Activity, Plus, Edit, Trash2 } from 'lucide-react'
+import { Users, Shield, Lock, Activity, Plus, Edit, Trash2, CheckCircle2, PauseCircle } from 'lucide-react'
 
 export const ROLE_OPTIONS = [
   { value: 'superadmin', label: 'Super Admin' },
@@ -148,8 +148,8 @@ export function createAdminStats(data, currentAdminId) {
 
   return [
     { key: 'total', label: 'Total Admins', value: total, trend: 0, icon: () => <Users className="w-5 h-5 text-primary-600" /> },
-    { key: 'active', label: 'Active', value: active, trend: 0, icon: () => <span className="w-5 h-5 text-success-600">🟢</span>, iconBg: 'bg-success-100' },
-    { key: 'inactive', label: 'Inactive', value: inactive, trend: 0, icon: () => <span className="w-5 h-5 text-admin-400">⏸</span>, iconBg: 'bg-admin-100' },
+    { key: 'active', label: 'Active', value: active, trend: 0, icon: () => <CheckCircle2 className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
+    { key: 'inactive', label: 'Inactive', value: inactive, trend: 0, icon: () => <PauseCircle className="w-5 h-5 text-admin-400" />, iconBg: 'bg-admin-100' },
     { key: 'superadmins', label: 'Super Admins', value: superadmins, trend: 0, icon: () => <Shield className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
   ]
 }

@@ -31,7 +31,7 @@ const MODES = [
 ]
 
 const ACCENT_CLASSES = {
-  admin:    { ring: 'ring-admin-900',    bg: 'bg-admin-900',    text: 'text-white' },
+  admin:    { ring: 'ring-primary-600',    bg: 'bg-primary-600',    text: 'text-white' },
   primary:  { ring: 'ring-primary-500',  bg: 'bg-primary-600',  text: 'text-white' },
   success:  { ring: 'ring-success-500',  bg: 'bg-success-600',  text: 'text-white' },
 }
@@ -106,7 +106,7 @@ export function LoginPage() {
   return (
     <div className="min-h-screen bg-admin-50 flex">
       {/* Left panel — brand */}
-      <div className="hidden lg:flex lg:w-1/2 bg-admin-900 text-white flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 text-white flex-col justify-between p-8 sm:p-12 relative overflow-hidden" style={{ background: '#121216' }}>
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" aria-hidden="true" />
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
@@ -115,19 +115,19 @@ export function LoginPage() {
             </div>
             <div>
               <h1 className="text-xl font-bold">MyCampus</h1>
-              <p className="text-xs text-admin-400">Verified Campus Platform</p>
+              <p className="text-xs" style={{ color: '#a1a1a6' }}>Verified Campus Platform</p>
             </div>
           </div>
 
           <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-4">
             One campus. Every opportunity.
           </h2>
-          <p className="text-admin-300 text-lg max-w-md">
+          <p className="text-lg max-w-md" style={{ color: '#c4c4cc' }}>
             Notices, events, exams, results, placements, and cross-university discovery — verified end to end.
           </p>
         </div>
 
-        <div className="relative z-10 flex items-center gap-3 text-admin-400 text-sm">
+        <div className="relative z-10 flex items-center gap-3 text-sm" style={{ color: '#a1a1a6' }}>
           <Shield className="w-5 h-5 flex-shrink-0" />
           <span>Scoped access · University data stays inside your campus</span>
         </div>
@@ -138,7 +138,7 @@ export function LoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
-            <div className="w-12 h-12 bg-admin-900 rounded-xl flex items-center justify-center">
+            <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center">
               <Shield className="w-7 h-7 text-white" />
             </div>
             <div>

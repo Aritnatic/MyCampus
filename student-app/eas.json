@@ -6,12 +6,18 @@
   "build": {
     "preview": {
       "distribution": "internal",
-      "android": { "buildType": "apk" },
-      "env": { "EXPO_PUBLIC_API_URL": "https://YOUR-SERVER-ADDRESS/api" }
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://nonmaritime-aaden-gneissoid.ngrok-free.dev/api"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "env": { "EXPO_PUBLIC_API_URL": "https://YOUR-SERVER-ADDRESS/api" }
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://YOUR-SERVER-ADDRESS/api"
+      }
     }
   },
   "submit": {

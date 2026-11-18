@@ -35,15 +35,15 @@ export default function FeedbackPage() {
     <div className="p-6 lg:p-8 max-w-4xl">
       <PageHeader title="Feedback" subtitle="What students told you from inside the app. Work through it from New to Done." />
 
-      <div className="flex gap-2 mt-4 mb-4" role="tablist" aria-label="Filter feedback">
+      <div className="admin-tabs mt-4 mb-4" role="tablist" aria-label="Filter feedback">
         {FILTERS.map(([value, label]) => (
           <button
             key={label}
+            type="button"
             role="tab"
             aria-selected={filter === value}
             onClick={() => setFilter(value)}
-            className="px-3 h-8 text-[13px] font-medium smooth"
-            style={{ border: `1px solid ${filter === value ? tokens.violet : tokens.hairline}`, color: filter === value ? tokens.ink : tokens.inkSoft, background: filter === value ? tokens.sunken : 'transparent', borderRadius: 8 }}
+            className={`admin-tab ${filter === value ? 'admin-tab-active' : ''}`}
           >{label}</button>
         ))}
       </div>

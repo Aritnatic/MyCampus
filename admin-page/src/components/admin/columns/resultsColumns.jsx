@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate, getRelativeDate } from '../../../utils/format'
-import { FileText, Upload, Download, Eye, CheckCircle, XCircle, AlertTriangle, BookOpen } from 'lucide-react'
+import { FileText, Upload, Download, Eye, CheckCircle, XCircle, AlertTriangle, BookOpen, TrendingUp } from 'lucide-react'
 
 export const RESULT_STATUS_OPTIONS = [
   { value: 'pending', label: 'Pending' },
@@ -177,7 +177,7 @@ export function createResultStats(data) {
     { key: 'pending', label: 'Pending Upload', value: pending, trend: 0, icon: () => <AlertTriangle className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'uploaded', label: 'Ready to Publish', value: uploaded, trend: 0, icon: () => <Upload className="w-5 h-5 text-info-600" />, iconBg: 'bg-info-100' },
     { key: 'published', label: 'Published', value: published, trend: 0, icon: () => <CheckCircle className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
-    { key: 'passPct', label: 'Overall Pass %', value: `${overallPassPct}%`, trend: 0, icon: () => <span className="w-5 h-5 text-primary-600">📈</span>, iconBg: 'bg-primary-100' },
+    { key: 'passPct', label: 'Overall Pass %', value: `${overallPassPct}%`, trend: 0, icon: () => <TrendingUp className="w-5 h-5 text-primary-600" />, iconBg: 'bg-primary-100' },
   ]
 }
 

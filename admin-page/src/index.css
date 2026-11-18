@@ -3,8 +3,125 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-primary: 99 102 241;
+  /* Shades behind every Tailwind colour class (see tailwind.config.js). Dark is the default until
+     theme.js sets data-theme on <html>, so the first paint matches the stored choice either way. */
+  :root,
+  :root[data-theme='dark'] {
+    --tw-admin-50: 31 31 35;
+    --tw-admin-100: 38 38 43;
+    --tw-admin-200: 46 46 52;
+    --tw-admin-300: 63 63 70;
+    --tw-admin-400: 107 107 115;
+    --tw-admin-500: 140 140 148;
+    --tw-admin-600: 161 161 166;
+    --tw-admin-700: 205 205 210;
+    --tw-admin-800: 228 228 231;
+    --tw-admin-900: 245 245 245;
+    --tw-admin-950: 250 250 250;
+    --tw-primary-50: 36 28 58;
+    --tw-primary-100: 46 35 78;
+    --tw-primary-200: 62 47 110;
+    --tw-primary-300: 92 70 160;
+    --tw-primary-400: 167 139 250;
+    --tw-primary-500: 139 92 246;
+    --tw-primary-600: 139 92 246;
+    --tw-primary-700: 167 139 250;
+    --tw-primary-800: 196 181 253;
+    --tw-primary-900: 221 214 254;
+    --tw-primary-950: 237 233 254;
+    --tw-success-50: 18 38 26;
+    --tw-success-100: 21 50 32;
+    --tw-success-200: 26 70 42;
+    --tw-success-300: 34 100 58;
+    --tw-success-500: 34 197 94;
+    --tw-success-600: 74 222 128;
+    --tw-success-700: 134 239 172;
+    --tw-success-800: 187 247 208;
+    --tw-success-900: 220 252 231;
+    --tw-warning-50: 42 32 12;
+    --tw-warning-100: 56 42 14;
+    --tw-warning-200: 80 60 18;
+    --tw-warning-300: 120 88 20;
+    --tw-warning-500: 245 180 0;
+    --tw-warning-600: 251 191 36;
+    --tw-warning-700: 252 211 77;
+    --tw-warning-800: 253 230 138;
+    --tw-warning-900: 254 243 199;
+    --tw-danger-50: 46 20 22;
+    --tw-danger-100: 60 25 27;
+    --tw-danger-200: 88 34 36;
+    --tw-danger-300: 125 45 48;
+    --tw-danger-500: 239 68 68;
+    --tw-danger-600: 239 68 68;
+    --tw-danger-700: 252 165 165;
+    --tw-danger-800: 254 202 202;
+    --tw-danger-900: 254 226 226;
+    --tw-info-50: 14 32 44;
+    --tw-info-100: 16 42 58;
+    --tw-info-200: 20 62 86;
+    --tw-info-300: 28 92 128;
+    --tw-info-500: 56 189 248;
+    --tw-info-600: 125 211 252;
+    --tw-info-700: 186 230 253;
+  }
+
+  :root[data-theme='light'] {
+    --tw-admin-50: 248 250 252;
+    --tw-admin-100: 241 245 249;
+    --tw-admin-200: 226 232 240;
+    --tw-admin-300: 203 213 225;
+    --tw-admin-400: 148 163 184;
+    --tw-admin-500: 100 116 139;
+    --tw-admin-600: 71 85 105;
+    --tw-admin-700: 51 65 85;
+    --tw-admin-800: 30 41 59;
+    --tw-admin-900: 15 23 42;
+    --tw-admin-950: 2 6 23;
+    --tw-primary-50: 245 243 255;
+    --tw-primary-100: 237 233 254;
+    --tw-primary-200: 221 214 254;
+    --tw-primary-300: 196 181 253;
+    --tw-primary-400: 167 139 250;
+    --tw-primary-500: 139 92 246;
+    --tw-primary-600: 124 58 237;
+    --tw-primary-700: 109 40 217;
+    --tw-primary-800: 91 33 182;
+    --tw-primary-900: 76 29 149;
+    --tw-primary-950: 46 16 101;
+    --tw-success-50: 240 253 244;
+    --tw-success-100: 220 252 231;
+    --tw-success-200: 187 247 208;
+    --tw-success-300: 134 239 172;
+    --tw-success-500: 34 197 94;
+    --tw-success-600: 22 163 74;
+    --tw-success-700: 21 128 61;
+    --tw-success-800: 22 101 52;
+    --tw-success-900: 20 83 45;
+    --tw-warning-50: 255 251 235;
+    --tw-warning-100: 254 243 199;
+    --tw-warning-200: 253 230 138;
+    --tw-warning-300: 252 211 77;
+    --tw-warning-500: 245 158 11;
+    --tw-warning-600: 217 119 6;
+    --tw-warning-700: 180 83 9;
+    --tw-warning-800: 146 64 14;
+    --tw-warning-900: 120 53 15;
+    --tw-danger-50: 254 242 242;
+    --tw-danger-100: 254 226 226;
+    --tw-danger-200: 254 202 202;
+    --tw-danger-300: 252 165 165;
+    --tw-danger-500: 239 68 68;
+    --tw-danger-600: 220 38 38;
+    --tw-danger-700: 185 28 28;
+    --tw-danger-800: 153 27 27;
+    --tw-danger-900: 127 29 29;
+    --tw-info-50: 240 249 255;
+    --tw-info-100: 224 242 254;
+    --tw-info-200: 186 230 253;
+    --tw-info-300: 125 211 252;
+    --tw-info-500: 14 165 233;
+    --tw-info-600: 2 132 199;
+    --tw-info-700: 3 105 161;
   }
 
   * {
@@ -16,13 +133,21 @@
   }
 
   body {
-    @apply bg-white text-admin-900 antialiased font-sans;
+    @apply text-admin-900 antialiased font-sans;
+    background-color: var(--canvas);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   ::selection {
     @apply bg-primary-200 text-primary-900;
   }
+
+  /* "bg-white" panels in the older pages mean "a surface", so they become the panel colour in dark mode. */
+  :root[data-theme='dark'] .bg-white,
+  :root:not([data-theme]) .bg-white {
+    background-color: var(--surface);
+  }
+  :root[data-theme='dark'] .border-b-white { border-bottom-color: var(--surface); }
 }
 
 @layer components {
@@ -30,12 +155,16 @@
   .admin-btn {
     @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded font-medium text-sm
       transition-colors duration-150
-      focus:outline-none focus:ring-2 focus:ring-admin-900 focus:ring-offset-2
+      focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-0
       disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .admin-btn-primary {
-    @apply admin-btn bg-admin-900 text-white hover:bg-admin-800 active:bg-admin-950;
+    @apply admin-btn text-white;
+    background-color: var(--violet);
+  }
+  .admin-btn-primary:hover { filter: brightness(1.08); }
+  .admin-btn-primary:active { filter: brightness(0.95);
   }
 
   .admin-btn-secondary {
@@ -56,9 +185,9 @@
 
   /* Minimal input styles */
   .admin-input {
-    @apply w-full px-3 py-2 rounded border border-admin-300 bg-white text-admin-900 placeholder-admin-400
+    @apply w-full px-3 py-2 rounded border border-admin-300 bg-admin-50 text-admin-900 placeholder-admin-400
       transition-colors duration-150
-      focus:outline-none focus:ring-1 focus:ring-admin-900 focus:border-admin-900
+      focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500
       disabled:bg-admin-50 disabled:text-admin-500;
   }
 
@@ -111,7 +240,15 @@
   .admin-status-dot.info::before { @apply bg-primary-500; }
   .admin-status-dot.gray::before { @apply bg-admin-400; }
 
-  /* Table styles - clean, no rounded cards */
+  /* Table styles - clean, no rounded cards. Wide tables scroll sideways instead of squeezing columns. */
+  .admin-table-container {
+    @apply w-full overflow-x-auto;
+  }
+
+  .admin-table th {
+    white-space: nowrap;
+  }
+
   .admin-table {
     @apply w-full text-left border-collapse;
   }
@@ -258,7 +395,7 @@
   /* Scrollbar */
   .admin-scrollbar-thin {
     scrollbar-width: thin;
-    scrollbar-color: rgb(203 213 225) transparent;
+    scrollbar-color: var(--thumb) transparent;
   }
 
   .admin-scrollbar-thin::-webkit-scrollbar {
@@ -271,12 +408,12 @@
   }
 
   .admin-scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: rgb(203 213 225);
+    background-color: var(--thumb);
     border-radius: 3px;
   }
 
   .admin-scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: rgb(148 163 184);
+    background-color: var(--inkFaint);
   }
 
   /* Dark-theme scrollbar: subtle white thumb, transparent track.
@@ -353,3 +490,128 @@
 [data-theme='light'] .bg-white\/5.animate-pulse {
   background-color: var(--wash);
 }
+
+/* ───────────────────────────────────────────────────────────────────────────
+   One look for every page: the older building blocks (admin-table, admin-tab, admin-input, admin-btn, admin-card,
+   admin-modal) are drawn exactly like the Dashboard / Students pages (PageChrome + kit): surface cards with a hairline
+   border and 14px corners, faint uppercase column headers, sunken 36px inputs, 10px buttons, underline tabs.
+   ─────────────────────────────────────────────────────────────────────────── */
+@layer components {
+  .admin-btn {
+    border-radius: 10px;
+    font-size: 13px;
+    white-space: nowrap;
+    min-height: 36px;
+  }
+  .admin-btn-secondary,
+  .admin-btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+  }
+  .admin-btn-ghost {
+    background: transparent;
+    color: var(--inkSoft);
+  }
+  .admin-btn-secondary:hover,
+  .admin-btn-outline:hover,
+  .admin-btn-ghost:hover {
+    background: var(--wash);
+    color: var(--ink);
+  }
+  .admin-btn-danger {
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--hairline);
+  }
+  .admin-btn-danger:hover { background: var(--redSoft); }
+
+  .admin-input {
+    background: var(--sunken);
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    font-size: 14px;
+    min-height: 36px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+  .admin-input::placeholder { color: var(--inkFaint); }
+  .admin-label {
+    font-size: 12px;
+    color: var(--inkSoft);
+  }
+
+  .admin-table-container {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+  }
+  .admin-table th {
+    background: transparent;
+    color: var(--inkFaint);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .admin-table td {
+    color: var(--ink);
+    border-bottom: 1px solid var(--hairline2);
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+  /* No zebra striping (the newer pages don't use it); rows just highlight on hover. */
+  .admin-table tbody tr:hover { background-color: var(--wash); }
+
+  .admin-tabs {
+    display: inline-flex;
+    align-self: flex-start;
+    gap: 4px;
+    padding: 0 4px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .admin-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--inkSoft);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .admin-tab.admin-tab-active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+  .admin-tab:hover { color: var(--ink); }
+  .admin-tab-underline.admin-tab-active {
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+  }
+
+  .admin-card,
+  .admin-stat {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+  }
+  .admin-modal {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+  }
+  .admin-modal-header,
+  .admin-modal-footer { border-color: var(--hairline); }
+  .admin-page-title { font-size: 20px; font-weight: 600; color: var(--ink); }
+  .admin-page-subtitle { font-size: 13px; color: var(--inkSoft); }
+
+}
+
+/* Outside @layer: these name utility classes, which Tailwind won't allow inside a layer that also @applies them. */
+.admin-table tbody tr[class~='bg-admin-50']:not(:hover) { background-color: transparent; }
+/* The sidebar's hover wash is white-on-dark; in light mode it needs the dark wash instead. */
+:root[data-theme='light'] [class~='hover:bg-white/5']:hover { background-color: var(--wash); }

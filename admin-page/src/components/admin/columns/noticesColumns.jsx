@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate, getRelativeDate } from '../../../utils/format'
-import { FileText, Calendar, Plus, Edit, Trash2, Eye, Pin, PinOff, AlertTriangle } from 'lucide-react'
+import { FileText, Calendar, Plus, Edit, Trash2, Eye, Pin, PinOff, AlertTriangle, CheckCircle2, PencilLine } from 'lucide-react'
 
 export const NOTICE_STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
@@ -168,8 +168,8 @@ export function createNoticeStats(data) {
 
   return [
     { key: 'total', label: 'Total Notices', value: total, trend: 0, icon: () => <FileText className="w-5 h-5 text-primary-600" /> },
-    { key: 'published', label: 'Published', value: published, trend: 0, icon: () => <span className="w-5 h-5 text-success-600">🟢</span>, iconBg: 'bg-success-100' },
-    { key: 'draft', label: 'Drafts', value: draft, trend: 0, icon: () => <span className="w-5 h-5 text-admin-400">📝</span>, iconBg: 'bg-admin-100' },
+    { key: 'published', label: 'Published', value: published, trend: 0, icon: () => <CheckCircle2 className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
+    { key: 'draft', label: 'Drafts', value: draft, trend: 0, icon: () => <PencilLine className="w-5 h-5 text-admin-400" />, iconBg: 'bg-admin-100' },
     { key: 'pinned', label: 'Pinned', value: pinned, trend: 0, icon: () => <Pin className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'urgent', label: 'Urgent', value: urgent, trend: 0, icon: () => <AlertTriangle className="w-5 h-5 text-danger-600" />, iconBg: 'bg-danger-100' },
   ]

@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate } from '../../../utils/format'
-import { Building2, TrendingUp, TrendingDown, CheckCircle } from 'lucide-react'
+import { Building2, TrendingUp, TrendingDown, CheckCircle, CheckCircle2, CircleDashed, ClipboardList, XCircle } from 'lucide-react'
 
 // Job type options for badge rendering
 export const JOB_TYPE_OPTIONS = [
@@ -187,10 +187,10 @@ export function createJobStats(data) {
   const totalApplications = data.reduce((sum, j) => sum + (j.applications || 0), 0)
 
   return [
-    { key: 'total', label: 'Total Jobs', value: total, trend: 0, icon: () => <span className="w-5 h-5 text-primary-600">📋</span> },
-    { key: 'open', label: 'Open', value: open, trend: 0, icon: () => <span className="w-5 h-5 text-success-600">🟢</span>, iconBg: 'bg-success-100' },
-    { key: 'closed', label: 'Closed', value: closed, trend: 0, icon: () => <span className="w-5 h-5 text-danger-600">🔴</span>, iconBg: 'bg-danger-100' },
-    { key: 'draft', label: 'Draft', value: draft, trend: 0, icon: () => <span className="w-5 h-5 text-warning-600">🟡</span>, iconBg: 'bg-warning-100' },
+    { key: 'total', label: 'Total Jobs', value: total, trend: 0, icon: () => <ClipboardList className="w-5 h-5 text-primary-600" /> },
+    { key: 'open', label: 'Open', value: open, trend: 0, icon: () => <CheckCircle2 className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
+    { key: 'closed', label: 'Closed', value: closed, trend: 0, icon: () => <XCircle className="w-5 h-5 text-danger-600" />, iconBg: 'bg-danger-100' },
+    { key: 'draft', label: 'Draft', value: draft, trend: 0, icon: () => <CircleDashed className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'openings', label: 'Total Openings', value: totalOpenings, trend: 0, icon: () => <TrendingUp className="w-5 h-5 text-info-600" />, iconBg: 'bg-info-100' },
   ]
 }

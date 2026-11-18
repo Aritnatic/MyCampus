@@ -5,11 +5,10 @@ import { tokens, radius } from '../../theme'
 export function AdminStatBar({ stats = [], className = '' }) {
   if (!stats.length) return null
 
-  const cols = stats.length > 4 ? 5 : stats.length
-  const gridClass = `grid-cols-${cols}`
-
+  // One row of compact tiles like the Students page. Tailwind can't see class names built at runtime
+  // (grid-cols-${n}), so the column count is an inline grid that fits as many tiles as the width allows.
   return (
-    <div className={`grid gap-3 mb-6 ${gridClass} grid-cols-2 lg:${gridClass} ${className}`}>
+    <div className={`grid gap-3 mb-6 ${className}`} style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
       {stats.map((stat, i) => {
         const accent = stat.color || 'green'
         const colorMap = {
@@ -28,17 +27,13 @@ export function AdminStatBar({ stats = [], className = '' }) {
               borderRadius: radius.container,
             }}
           >
-            <div
-              className="h-1"
-              style={{ background: colorMap.fg }}
-            />
             <div className="p-4 flex items-start justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-medium" style={{ color: tokens.inkSoft }}>{stat.label}</p>
                 <p className="text-2xl font-semibold tracking-tight mt-1" style={{ color: tokens.ink, fontVariantNumeric: 'tabular-nums' }}>
                   {typeof stat.value === 'function' ? stat.value() : stat.value}
                 </p>
-                {stat.trend !== undefined && (
+                {stat.trend !== undefined && stat.trend !== 0 && (
                   <p className="text-xs mt-1 flex items-center gap-1">
                     {stat.trend > 0 ? (
                       <span className="flex items-center gap-0.5" style={{ color: tokens.green }}>

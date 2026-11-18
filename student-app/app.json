@@ -30,6 +30,17 @@
       "expo-font"
     ],
     "scheme": "mycampus",
-    "backgroundColor": "#0d0d0f"
+    "backgroundColor": "#0d0d0f",
+    "owner": "11imaad",
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "d21f5c7c-5a51-4e1c-a8a7-8279f790381c"
+      }
+    }
   }
 }

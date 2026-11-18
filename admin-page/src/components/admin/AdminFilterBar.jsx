@@ -126,7 +126,7 @@ function AdminMultiSelect({ value = [], onChange, options = [], placeholder, cla
       >
         <span className="truncate">
           {value.length === 0
-            ? <span className="text-admin-400">{placeholder}</span>
+            ? <span className="text-admin-500">{placeholder}</span>
             : value.length === 1
             ? options.find(o => o.value === value[0])?.label || value[0]
             : `${value.length} selected`}

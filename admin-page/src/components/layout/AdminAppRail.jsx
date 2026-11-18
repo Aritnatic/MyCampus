@@ -14,10 +14,6 @@ import {
   Users,
   Search,
   ChevronsUpDown,
-  Inbox,
-  CalendarCheck,
-  CheckSquare,
-  GraduationCap,
   Bell,
   ShieldAlert,
   FlaskConical,
@@ -37,14 +33,6 @@ const PRIMARY = [
   { path: '/admin/faculty-research', icon: FlaskConical,   label: 'Faculty & research', anyOf: ['faculty', 'research'] },
   { path: '/admin/alerts',          icon: ShieldAlert,     label: 'Safety alerts',     anyOf: ['safety'] },
   { path: '/admin/feedback',        icon: MessageSquare, label: 'Feedback' },
-]
-
-// Secondary nav — workflow shortcuts (reference: "RECENT" sub-section).
-const SHORTCUTS = [
-  { icon: Inbox,         label: 'Inbox',   path: '/admin/dashboard',             count: 0 },
-  { icon: CalendarCheck, label: 'Calendar', path: '/admin/notices-events?tab=events' },
-  { icon: CheckSquare,   label: 'Tasks',    path: '/admin/notices-events?tab=notices&status=draft' },
-  { icon: GraduationCap, label: 'Results',  path: '/admin/exams-results?tab=results' },
 ]
 
 // Footer nav (rare use)
@@ -173,38 +161,6 @@ export function AdminAppRail() {
           )
         })}
 
-        {!collapsed && (
-          <div className="px-2.5 py-1.5 mt-3 text-[10px] uppercase tracking-wider font-semibold" style={{ color: tokens.inkFaint }}>
-            Shortcuts
-          </div>
-        )}
-        {SHORTCUTS.map((item) => {
-          const Icon = item.icon
-          return (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => navigate(item.path)}
-              className="w-full flex items-center gap-2.5 px-2.5 py-1.5 my-0.5 text-[13px] smooth smooth-press hover:bg-white/5"
-              style={{ color: tokens.inkSoft, borderRadius: radius.button }}
-            >
-              <Icon className="w-4 h-4 flex-shrink-0" style={{ color: tokens.inkFaint }} aria-hidden="true" />
-              {!collapsed && (
-                <>
-                  <span className="truncate flex-1 text-left">{item.label}</span>
-                  {item.count > 0 && (
-                    <span
-                      className="text-[10px] font-semibold px-1.5"
-                      style={{ background: tokens.violetSoft, color: tokens.violetText, borderRadius: radius.chip }}
-                    >
-                      {item.count}
-                    </span>
-                  )}
-                </>
-              )}
-            </button>
-          )
-        })}
       </nav>
 
       {/* Footer: settings, help, logout, collapse */}

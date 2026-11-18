@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate } from '../../../utils/format'
-import { Building2, TrendingUp, Users, CheckCircle, MapPin, Mail, Phone } from 'lucide-react'
+import { Building2, TrendingUp, Users, CheckCircle, MapPin, Mail, Phone, BadgeCheck, Hourglass, PauseCircle } from 'lucide-react'
 
 // Company tier options
 export const COMPANY_TIER_OPTIONS = [
@@ -204,9 +204,9 @@ export function createCompanyStats(data) {
   return [
     { key: 'total', label: 'Total Companies', value: total, trend: 0, icon: () => <Building2 className="w-5 h-5 text-primary-600" /> },
     { key: 'active', label: 'Active', value: active, trend: 0, icon: () => <CheckCircle className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
-    { key: 'pending', label: 'Pending', value: pending, trend: 0, icon: () => <span className="w-5 h-5 text-warning-600">⏳</span>, iconBg: 'bg-warning-100' },
-    { key: 'inactive', label: 'Inactive', value: inactive, trend: 0, icon: () => <span className="w-5 h-5 text-admin-400">⏸</span>, iconBg: 'bg-admin-100' },
-    { key: 'verified', label: 'Verified', value: verified, trend: 0, icon: () => <span className="w-5 h-5 text-info-600">✓</span>, iconBg: 'bg-info-100' },
+    { key: 'pending', label: 'Pending', value: pending, trend: 0, icon: () => <Hourglass className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
+    { key: 'inactive', label: 'Inactive', value: inactive, trend: 0, icon: () => <PauseCircle className="w-5 h-5 text-admin-400" />, iconBg: 'bg-admin-100' },
+    { key: 'verified', label: 'Verified', value: verified, trend: 0, icon: () => <BadgeCheck className="w-5 h-5 text-info-600" />, iconBg: 'bg-info-100' },
   ]
 }
 

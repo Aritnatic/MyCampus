@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom'
 import React, { useState } from 'react'
 import { useStoreRevision } from '../../data/store'
 import { AdminTabs, TabPanel } from '../../components/admin/AdminTabs'
@@ -82,7 +83,8 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
   const { admin } = useAuth()
   const toast = useToast()
   const uniId = admin?.university
-  const [activeTab, setActiveTab] = useState(defaultTab)
+  const [searchParams] = useSearchParams()
+  const [activeTab, setActiveTab] = useState(['exams', 'results'].includes(searchParams.get('tab')) ? searchParams.get('tab') : defaultTab)
   const [rev, setRev] = useState(0)
   const bump = () => setRev((r) => r + 1)
   const storeRev = useStoreRevision() // changes when the API sync or a failed write updates the lists
@@ -248,6 +250,14 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
     }
   }
 
+  // "Publish Result" on the Results tab: pick the exam in the form.
+  const openCreateResult = () => {
+    setEditingResult(null)
+    setResultForm({ ...initialResultForm, examId: '' })
+    setSelectedFile(null)
+    setResultModalOpen(true)
+  }
+
   const openUploadResult = (exam) => {
     const existingResult = getResultByExamId(exam.id)
     setEditingResult(existingResult || null)
@@ -262,9 +272,15 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
 
   const handleResultSubmit = (e) => {
     e.preventDefault()
+    // The server files a result under its exam's branch and semester (that decides which students are told).
+    const exam = getExamById(resultForm.examId)
+    if (!exam) { toast.error('Choose the exam these results are for.'); return }
     const payload = {
       ...resultForm,
       university: uniId,
+      branch: exam.branch,
+      semester: exam.semester,
+      examTitle: exam.title,
       fileName: selectedFile?.name || resultForm.fileName,
     }
     if (editingResult) {
@@ -358,7 +374,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
             renderRowActions={(row) => (
               <div className="flex items-center justify-end gap-1">
                 {row.status !== 'completed' && row.status !== 'cancelled' && !row.resultsPublished && (
-                  <AdminButton variant="primary" size="sm" onClick={() => openUploadResult(row)}>
+                  <AdminButton variant="secondary" size="sm" onClick={() => openUploadResult(row)}>
                     <Upload className="w-4 h-4" />
                     Upload Results
                   </AdminButton>
@@ -421,7 +437,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
             renderRowActions={(row) => (
               <div className="flex items-center justify-end gap-1">
                 {row.status === 'uploaded' && (
-                  <AdminButton variant="primary" size="sm" onClick={() => openUploadResult(getExamById(row.examId))}>
+                  <AdminButton variant="secondary" size="sm" onClick={() => openUploadResult(getExamById(row.examId))}>
                     <CheckCircle className="w-4 h-4" />
                     Publish
                   </AdminButton>

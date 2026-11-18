@@ -70,6 +70,9 @@ const PAGE_TITLES = {
   '/admin/notices-events':{ title: 'Notices & Events', breadcrumb: ['Admin', 'Notices & Events'] },
   '/admin/exams-results': { title: 'Exams & Results', breadcrumb: ['Admin', 'Exams & Results'] },
   '/admin/placements':    { title: 'Placements', breadcrumb: ['Admin', 'Placements'] },
+  '/admin/alerts':        { title: 'Safety alerts', breadcrumb: ['Admin', 'Safety alerts'] },
+  '/admin/feedback':      { title: 'Feedback', breadcrumb: ['Admin', 'Feedback'] },
+  '/admin/faculty-research': { title: 'Faculty & research', breadcrumb: ['Admin', 'Faculty & research'] },
   '/admin/settings':      { title: 'Settings', breadcrumb: ['Admin', 'Settings'] },
 }
 
@@ -171,10 +174,6 @@ export function AdminHeader() {
               </span>
             </React.Fragment>
           ))}
-          <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: tokens.inkFaint }} aria-hidden="true" />
-          <span className="truncate text-[12px]" style={{ color: tokens.inkSoft }}>
-            admin/dashboard
-          </span>
         </nav>
       </div>
 

@@ -59,7 +59,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-admin-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-xl border border-admin-200 p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-admin-900 rounded-xl flex items-center justify-center"><Shield className="w-5 h-5 text-white" /></div>
+          <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center"><Shield className="w-5 h-5 text-white" /></div>
           <div><h1 className="text-lg font-bold text-admin-900">MyCampus</h1><p className="text-xs text-admin-500">Admin panel</p></div>
         </div>
 
