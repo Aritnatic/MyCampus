@@ -56,6 +56,10 @@ export function AdminFormModal({
           if (field.type === 'checkbox') {
             data[field.name] = formData.has(field.name)
           }
+          // Chips and multi-selects post one hidden input per chosen value.
+          if (field.type === 'chips' || field.type === 'multiselect') {
+            data[field.name] = formData.getAll(field.name)
+          }
         })
       }
     })
@@ -83,7 +87,7 @@ export function AdminFormModal({
                         name={field.name}
                         label={field.label}
                         type={field.inputType || 'text'}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         error={field.error}
@@ -96,7 +100,7 @@ export function AdminFormModal({
                       <AdminTextarea
                         name={field.name}
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         rows={field.rows || 4}
@@ -109,7 +113,7 @@ export function AdminFormModal({
                         name={field.name}
                         label={field.label}
                         options={field.options || []}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         error={field.error}
@@ -120,8 +124,7 @@ export function AdminFormModal({
                       <AdminCheckbox
                         name={field.name}
                         label={field.label}
-                        checked={initialData[field.name] || field.defaultValue || false}
-                        onChange={(e) => {}}
+                        defaultChecked={initialData[field.name] || field.defaultValue || false}
                       />
                     )}
                     {field.type === 'date' && (
@@ -129,7 +132,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="date"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         required={field.required}
                         error={field.error}
                       />
@@ -139,7 +142,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="number"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         min={field.min}
                         max={field.max}
                         step={field.step}
@@ -153,7 +156,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="email"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         required={field.required}
                         error={field.error}
                         hint={field.hint}
@@ -210,7 +213,7 @@ export function AdminFormModal({
                         name={field.name}
                         label={field.label}
                         type={field.inputType || 'text'}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         error={field.error}
@@ -223,7 +226,7 @@ export function AdminFormModal({
                       <AdminTextarea
                         name={field.name}
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         rows={field.rows || 4}
@@ -236,7 +239,7 @@ export function AdminFormModal({
                         name={field.name}
                         label={field.label}
                         options={field.options || []}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         placeholder={field.placeholder}
                         required={field.required}
                         error={field.error}
@@ -247,8 +250,7 @@ export function AdminFormModal({
                       <AdminCheckbox
                         name={field.name}
                         label={field.label}
-                        checked={initialData[field.name] || field.defaultValue || false}
-                        onChange={(e) => {}}
+                        defaultChecked={initialData[field.name] || field.defaultValue || false}
                       />
                     )}
                     {field.type === 'date' && (
@@ -256,7 +258,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="date"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         required={field.required}
                         error={field.error}
                       />
@@ -266,7 +268,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="number"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         min={field.min}
                         max={field.max}
                         step={field.step}
@@ -280,7 +282,7 @@ export function AdminFormModal({
                         name={field.name}
                         type="email"
                         label={field.label}
-                        value={initialData[field.name] || field.defaultValue || ''}
+                        defaultValue={initialData[field.name] || field.defaultValue || ''}
                         required={field.required}
                         error={field.error}
                         hint={field.hint}
@@ -343,8 +345,18 @@ export function AdminFormModal({
   )
 }
 
+// Chosen values for chips and multi-selects. The field keeps its own list (the modal's other fields are
+// uncontrolled too), tells an optional onChange, and posts one hidden input per value so submit sees them.
+function useChosen(initial, onChange) {
+  const [chosen, setChosen] = React.useState(() => (Array.isArray(initial) ? initial : []))
+  const set = (next) => { setChosen(next); onChange?.(next) }
+  const toggle = (v) => set(chosen.includes(v) ? chosen.filter((x) => x !== v) : [...chosen, v])
+  return { chosen, toggle }
+}
+
 // Multi-select field component
-function AdminMultiSelectField({ name, options = [], value = [], onChange, placeholder }) {
+function AdminMultiSelectField({ name, options = [], value: initial = [], onChange, placeholder }) {
+  const { chosen: value, toggle } = useChosen(initial, onChange)
   const [open, setOpen] = React.useState(false)
   const buttonRef = React.useRef(null)
 
@@ -360,6 +372,7 @@ function AdminMultiSelectField({ name, options = [], value = [], onChange, place
 
   return (
     <div className="relative" ref={buttonRef}>
+      {value.map((v) => <input key={v} type="hidden" name={name} value={v} />)}
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -389,13 +402,7 @@ function AdminMultiSelectField({ name, options = [], value = [], onChange, place
               <input
                 type="checkbox"
                 checked={value.includes(opt.value)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onChange([...value, opt.value])
-                  } else {
-                    onChange(value.filter(v => v !== opt.value))
-                  }
-                }}
+                onChange={() => toggle(opt.value)}
                 className="w-4 h-4 rounded border-admin-300 text-primary-600 focus:ring-primary-500"
               />
               <span className="text-sm text-admin-700">{opt.label}</span>
@@ -408,22 +415,19 @@ function AdminMultiSelectField({ name, options = [], value = [], onChange, place
 }
 
 // Chips field component (for branch/skill selection)
-function AdminChipsField({ name, options = [], value = [], onChange, label, description }) {
+function AdminChipsField({ name, options = [], value: initial = [], onChange, label, description }) {
+  const { chosen: value, toggle } = useChosen(initial, onChange)
   return (
     <div className="admin-form-group">
       {label && <label className="admin-label">{label}</label>}
+      {value.map((v) => <input key={v} type="hidden" name={name} value={v} />)}
       <div className="flex flex-wrap gap-2">
         {options.map((opt) => (
           <button
             key={opt.value}
             type="button"
-            onClick={() => {
-              if (value.includes(opt.value)) {
-                onChange(value.filter(v => v !== opt.value))
-              } else {
-                onChange([...value, opt.value])
-              }
-            }}
+            aria-pressed={value.includes(opt.value)}
+            onClick={() => toggle(opt.value)}
             className={`px-3 py-1.5 text-sm rounded border transition-colors ${
               value.includes(opt.value)
                 ? 'bg-primary-50 border-primary-300 text-primary-700'

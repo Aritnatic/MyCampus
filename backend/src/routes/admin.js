@@ -12,10 +12,13 @@ export const adminRoutes = Router()
 
 // ---------------- content management ----------------
 const ADMIN_KINDS = Object.fromEntries(Object.entries(KINDS).filter(([, kind]) => ADMIN_PERMISSION[kind]))
+// Recruiter companies are admin-only records (contact people and emails), so they are not in KINDS and
+// students cannot read them through /content.
+ADMIN_KINDS.companies = 'company'
 const REQUIRED = {
   notice: ['title', 'body', 'category'], event: ['title', 'startDate'], exam: ['title', 'branch', 'semester', 'startDate'],
   result: ['branch', 'semester'], job: ['title', 'company'], faculty: ['name', 'department', 'designation'],
-  research: ['title', 'supervisor', 'description'],
+  research: ['title', 'supervisor', 'description'], company: ['name'],
 }
 // Fields clients may never set; they're assigned by the server.
 const PROTECTED = ['id', 'university', 'publishedBy', 'ownerId']

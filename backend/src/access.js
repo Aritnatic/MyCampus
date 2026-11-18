@@ -35,7 +35,7 @@ export function canView(user, kind, doc) {
 // Which admin permission manages each record type. Superadmins hold all of them.
 export const ADMIN_PERMISSION = {
   notice: 'notices', event: 'events', exam: 'exams', result: 'results', job: 'placements',
-  faculty: 'faculty', research: 'research',
+  faculty: 'faculty', research: 'research', company: 'placements',
 }
 
 // "Without ranking students": relevance ordering is fine, but nothing student-facing may

@@ -185,3 +185,23 @@ describe('roster import', () => {
     assert.equal((await call('/admin/students/import', { token: sup, method: 'POST', body: { rows: [] } })).status, 400)
   })
 })
+
+describe('placement companies', () => {
+  it('are stored on the server for admins with placements permission, and hidden from students', async () => {
+    const mod = await as('moderator') // has placements
+    const made = await call('/admin/companies', { token: mod, method: 'POST', body: { name: 'Test Recruiter Ltd', industry: 'IT', contactEmail: 'hr@test.example', tier: 'tier2' } })
+    assert.equal(made.status, 201)
+    assert.equal(made.body.university, 'cvrp')
+    assert.equal((await call('/admin/companies', { token: mod, method: 'POST', body: { industry: 'IT' } })).status, 400)
+
+    const list = await call('/admin/companies', { token: mod })
+    assert.ok(list.body.some((c) => c.id === made.body.id))
+    assert.equal((await call(`/admin/companies/${made.body.id}`, { token: mod, method: 'PUT', body: { relationship: 'active' } })).body.relationship, 'active')
+
+    assert.equal((await call('/admin/companies', { token: await as('examAdmin') })).status, 403)
+    assert.equal((await call('/admin/companies', { token: await as('rahul') })).status, 403)
+    assert.equal((await call('/content/companies', { token: await as('aritra') })).status, 404)
+
+    assert.equal((await call(`/admin/companies/${made.body.id}`, { token: mod, method: 'DELETE' })).status, 204)
+  })
+})

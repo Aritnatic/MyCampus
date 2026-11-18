@@ -11,7 +11,7 @@ import { formatDate, formatNumber, truncate } from '../../utils/format'
 import {
   getJobsByUniversity,
   getCompaniesByUniversity,
-  placementStats,
+  getPlacementStats,
   jobs,
   companies,
 } from '../../data/placements'
@@ -22,11 +22,8 @@ import {
   Building2,
   Plus,
   TrendingUp,
-  Users,
-  CheckCircle,
   GraduationCap,
   Calendar,
-  FileText,
 } from 'lucide-react'
 import {
   createJobColumns,
@@ -59,6 +56,7 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
   const storeRev = useStoreRevision() // changes when the API sync or a failed write updates the lists
   const jobsData = React.useMemo(() => getJobsByUniversity(uniId), [uniId, rev, storeRev])
   const companiesData = React.useMemo(() => getCompaniesByUniversity(uniId), [uniId, rev, storeRev])
+  const placementStats = React.useMemo(() => getPlacementStats(uniId), [uniId, rev, storeRev])
 
   // Jobs state
   const [jobSearch, setJobSearch] = useState('')
@@ -165,7 +163,7 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
       companies.update(editingCompany.id, payload)
       toast.success('Company updated.', { title: 'Saved' })
     } else {
-      companies.add({ id: `comp-${Date.now()}`, ...payload, addedAt: new Date().toISOString() })
+      companies.add({ id: `comp-${Date.now()}`, ...payload, university: uniId, addedAt: new Date().toISOString() })
       toast.success('Company added.', { title: 'Saved' })
     }
     bump()
@@ -309,57 +307,37 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
         <AdminPageSection>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <StatCard
-              label="Placement %"
-              value={`${placementStats.placementPercentage}%`}
-              icon={CheckCircle}
+              label="Open jobs"
+              value={formatNumber(placementStats.openJobs)}
+              icon={Briefcase}
               accent={tokens.green}
-              sub={`${formatNumber(placementStats.placedStudents)} placed`}
+              sub={`${formatNumber(placementStats.totalOpenings)} openings in total`}
             />
             <StatCard
-              label="Average Package"
-              value={`₹${(placementStats.averagePackage / 100000).toFixed(2)} L`}
-              icon={TrendingUp}
+              label="Closing this week"
+              value={formatNumber(placementStats.closingSoon)}
+              icon={Calendar}
+              accent={tokens.yellow}
+              sub={`${formatNumber(placementStats.totalJobs)} jobs posted so far`}
+            />
+            <StatCard
+              label="Recruiting companies"
+              value={formatNumber(placementStats.totalCompanies)}
+              icon={Building2}
               accent={tokens.violet}
-              sub={`${formatNumber(placementStats.totalCompanies)} companies`}
+              sub={`${formatNumber(placementStats.activeCompanies)} active, ${formatNumber(placementStats.tier1Companies)} Tier-1`}
             />
             <StatCard
-              label="Highest Package"
-              value={`₹${(placementStats.highestPackage / 100000).toFixed(2)} L`}
+              label="Hires recorded"
+              value={formatNumber(placementStats.totalHires)}
               icon={GraduationCap}
               accent={tokens.blue}
-              sub={`${placementStats.tier1Companies} Tier-1 companies`}
-            />
-            <StatCard
-              label="Eligible Students"
-              value={formatNumber(placementStats.eligibleStudents)}
-              icon={Users}
-              accent={tokens.yellow}
-              sub={`${formatNumber(placementStats.registeredStudents)} registered`}
+              sub="Sum of each company's hires"
             />
           </div>
-
-          <AdminPageSection title="Recruitment Summary">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <StatCard
-                label="Ongoing Drives"
-                value={placementStats.ongoingDrives}
-                icon={Briefcase}
-                accent={tokens.green}
-              />
-              <StatCard
-                label="Upcoming Drives"
-                value={placementStats.upcomingDrives}
-                icon={Calendar}
-                accent={tokens.blue}
-              />
-              <StatCard
-                label="Total Applications"
-                value={formatNumber(1987)}
-                icon={FileText}
-                accent={tokens.violet}
-              />
-            </div>
-          </AdminPageSection>
+          <p className="text-sm" style={{ color: tokens.inkSoft }}>
+            These figures come from the jobs and companies saved here. Placement rate and packages appear once the college records placement outcomes.
+          </p>
         </AdminPageSection>
       )}
 

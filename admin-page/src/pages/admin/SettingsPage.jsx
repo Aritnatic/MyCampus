@@ -7,7 +7,6 @@ import { useToast } from '../../components/feedback/Toast'
 import { PageHeader, SectionCard, StatusPill, TagChip } from '../../components/admin/PageChrome'
 import { Button, ConfirmDialog, Empty, ErrorState, Field, Loading, Modal, NoAccess, Select, TextInput, td, th, timeAgo } from '../../components/admin/kit'
 import { useAdminApi } from '../../hooks/useAdminApi'
-import { store } from '../../hooks/useStoredState'
 import { roles } from '../../data/admin'
 import { tokens } from '../../theme'
 
@@ -289,8 +288,6 @@ function AuditLog() {
 // Roles reference (documentation, not data)
 // ---------------------------------------------------------------------------
 function RolesInfo() {
-  const [confirm, setConfirm] = useState(false)
-  const toast = useToast()
   return (
     <div className="space-y-6 max-w-4xl">
       <SectionCard padded={false}>
@@ -299,12 +296,6 @@ function RolesInfo() {
           <tbody>{roles.map((r) => <tr key={r.id} style={{ borderBottom: `1px solid ${tokens.hairline2}` }}><td className={td} style={{ color: tokens.ink }}>{r.name}</td><td className={td} style={{ color: tokens.inkSoft }}>{r.description}</td></tr>)}</tbody>
         </table>
       </SectionCard>
-      <SectionCard>
-        <h2 className="text-sm font-semibold mb-1" style={{ color: tokens.ink }}>Demo data stored in this browser</h2>
-        <p className="text-sm mb-3" style={{ color: tokens.inkSoft }}>The Placements company list is still demo data saved in this browser only (notices, events, exams, results and jobs live on the server). Clearing it restores the demo companies.</p>
-        <Button variant="secondary" onClick={() => setConfirm(true)}>Reset browser demo data</Button>
-      </SectionCard>
-      {confirm && <ConfirmDialog title="Reset browser demo data?" confirmText="Reset" message="This only affects the company list stored in this browser. Nothing on the server changes." onConfirm={() => { store.reset(); toast.success('Demo data restored. Reloading…', { title: 'Reset' }); setTimeout(() => window.location.reload(), 600) }} onClose={() => setConfirm(false)} />}
     </div>
   )
 }

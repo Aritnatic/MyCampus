@@ -39,6 +39,14 @@ docker run -d --name mycampus -p 4000:4000 -v mycampus-data:/data --env-file .en
 
 On a platform (Railway/Fly), point it at this repo's `Dockerfile`, mount the volume at `/data`, and set the variables above.
 
+**Railway, step by step:** New Project → Deploy from GitHub repo → pick this repo (it finds the `Dockerfile`). Then:
+1. Service → Settings → Volumes → add a volume mounted at `/data`.
+2. Variables → add the ones from section 2, plus `RAILWAY_RUN_UID=0`. Railway mounts volumes as root, and without this the server (which runs as `node`) cannot write the database.
+3. Settings → Networking → Generate Domain (or add your own domain). Put that address in `CORS_ORIGIN`.
+4. Deploy, then do sections 4 and 5 below (use Railway's shell for the bootstrap command, without `docker exec -it mycampus`).
+
+**Fly.io** works the same way (`fly launch`, `fly volumes create data`, mount it at `/data`). Its volumes are also root-owned, so run the server as root there too, or `chown node:node /data` once from `fly ssh console`.
+
 ## 4. Create the college and the first admin (once)
 
 ```bash
@@ -80,6 +88,17 @@ Deploys that don't change the database format roll back by redeploying the previ
 Each request is one JSON line on stdout (`method`, `path` without the query string, `status`, `ms`, `user` id, `id` matching the `X-Request-Id` response header); unexpected errors are `level":"error"` lines with a stack. Use your platform's log viewer and filter on `"level":"error"` or `"status":500`. Point an uptime monitor (UptimeRobot, Better Stack, the platform's own) at `/health` — it returns `{"ok":true}`. No error-tracking service is wired; add one if the pilot needs paging.
 
 ## 9. The phone app
+
+`student-app/eas.json` has two build profiles. First replace `YOUR-SERVER-ADDRESS` in it with your real address (a build with the placeholder can't reach any server). Then, from `student-app/`:
+
+```bash
+eas login                                  # your Expo account (free)
+eas init                                   # links the app to an Expo project; writes the project id push needs
+eas build -p android --profile preview     # an APK you can send to pilot students directly
+eas build -p android --profile production  # for Google Play (needs the Play Console account)
+```
+
+For push on Android, upload a Firebase (FCM) key when `eas credentials` asks; then set `EXPO_PUSH=1` on the server.
 
 Build with `EXPO_PUBLIC_API_URL=https://<your-address>/api`. Android internal testing and iOS TestFlight both need EAS builds and developer accounts (Google Play one-time fee; Apple Developer yearly fee) — those accounts are the college's/your decision. Push to a locked phone needs an EAS project id and a development/production build, not Expo Go; it has **not been tested on a real device yet**.
 

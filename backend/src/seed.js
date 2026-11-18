@@ -54,7 +54,7 @@ export async function seed() {
     for (const u of uni.universities) insertUni.run(u.id, JSON.stringify({ ...u, domains: domainsOf(u) }))
 
     const content = {
-      notice: notices.notices, event: events.events, exam: exams.exams, result: exams.results, job: placements.jobs,
+      notice: notices.notices, event: events.events, exam: exams.exams, result: exams.results, job: placements.jobs, company: placements.companies,
       grade: grades.results, note: notes.notes, project: projects.projects, startup: startups.startups,
       research: research.research, faculty: faculty.faculty, career: career.careers,
     }

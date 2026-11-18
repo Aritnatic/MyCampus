@@ -24,6 +24,9 @@ COPY backend/legal ./legal
 COPY backend/seed-data ./seed-data
 COPY --from=admin /build/dist ./admin
 # Everything that must survive a redeploy (database, uploads, backups) lives in /data: mount a volume there.
+# The server runs as `node`, so it must own /data (a new Docker volume copies this ownership). Hosts that
+# mount volumes as root (Railway, Fly) need the extra step in backend/DEPLOY.md.
+RUN mkdir -p /data && chown node:node /data
 VOLUME /data
 EXPOSE 4000
 USER node
