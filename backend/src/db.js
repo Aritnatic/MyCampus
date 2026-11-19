@@ -202,6 +202,15 @@ const MIGRATIONS = [
   `
   DELETE FROM docs WHERE kind = 'campus_map';
   `,
+  // 8 — a permanent MyCampus ID for every account (MC-XXXX-XXXX), the same whatever college they join. A trigger
+  // assigns it, so every way an account is created (sign-up, roster import, new admin, seed) gets one.
+  `
+  ALTER TABLE users ADD COLUMN public_id TEXT;
+  UPDATE users SET public_id = 'MC-' || substr(hex(randomblob(2)), 1, 4) || '-' || substr(hex(randomblob(2)), 1, 4) WHERE public_id IS NULL;
+  CREATE UNIQUE INDEX users_public_id ON users (public_id);
+  CREATE TRIGGER users_public_id AFTER INSERT ON users WHEN NEW.public_id IS NULL
+    BEGIN UPDATE users SET public_id = 'MC-' || substr(hex(randomblob(2)), 1, 4) || '-' || substr(hex(randomblob(2)), 1, 4) WHERE id = NEW.id; END;
+  `,
 ]
 
 const version = db.prepare('PRAGMA user_version').get().user_version
@@ -263,7 +272,16 @@ export function publicUser(row) {
     ...JSON.parse(row.data),
     id: row.id, email: row.email, role: row.role, university: row.university,
     status: row.status, emailVerified: !!row.email_verified,
+    publicId: row.public_id ?? null,
+    college: collegeCard(row.university),
   }
+}
+
+// Name, short name and logo of a college, for profiles and pickers. Null when there isn't one.
+export function collegeCard(id) {
+  const u = id ? universities.get(id) : null
+  if (!u) return null
+  return { id: u.id, name: u.name, short: u.short, city: u.city ?? null, logoUrl: u.logoVersion ? `/api/colleges/${u.id}/logo?v=${u.logoVersion}` : null }
 }
 
 export function audit(actor, action, target, data) {

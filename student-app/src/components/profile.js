@@ -2,12 +2,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { Avatar, Chip, TONES } from './ui'
 import { tokens as t, radius, themed } from '../theme'
+import { CollegeBadge } from './CollegeBadge'
 
 // Building blocks for profile-style pages (people, projects, faculty…) and the hub screens.
 
 // Cover band, overlapping avatar or icon, title, subtitle, badges and a stat strip.
 // person: show initials in a ring · otherwise `icon` in a tinted tile.
-export function ProfileHero({ name, icon = 'person', tone = 'violet', title, subtitle, badges = [], stats = [] }) {
+export function ProfileHero({ name, icon = 'person', tone = 'violet', title, subtitle, badges = [], stats = [], college }) {
   const [soft, strong] = TONES[tone]
   return (
     <View>
@@ -24,6 +25,7 @@ export function ProfileHero({ name, icon = 'person', tone = 'violet', title, sub
         </View>
         <Text accessibilityRole="header" style={styles.title}>{title}</Text>
         {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        {college ? <CollegeBadge college={college} style={{ marginTop: 10 }} /> : null}
         {badges.length > 0 ? <View style={styles.badges}>{badges.map((b) => <Chip key={b.label} label={b.label} tone={b.tone} />)}</View> : null}
       </View>
       {stats.length > 0 ? <StatStrip stats={stats} /> : null}
@@ -77,14 +79,14 @@ export function BulletList({ items }) {
 }
 
 // icon + label + value, optionally tappable.
-export function InfoRow({ icon, label, value, onPress }) {
+export function InfoRow({ icon, label, value, onPress, selectable }) {
   if (!value) return null
   const body = (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}><Ionicons name={icon} size={16} color={t.violetText} /></View>
       <View style={{ flex: 1 }}>
         <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={[styles.infoValue, onPress && { color: t.violetText }]}>{value}</Text>
+        <Text selectable={selectable} style={[styles.infoValue, onPress && { color: t.violetText }]}>{value}</Text>
       </View>
       {onPress ? <Ionicons name="open-outline" size={16} color={t.inkFaint} /> : null}
     </View>

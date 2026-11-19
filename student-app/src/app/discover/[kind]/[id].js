@@ -1,4 +1,4 @@
-import { Linking, ScrollView, StyleSheet, View } from 'react-native'
+import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { Async, RichText, formatDate } from '../../../components/ui'
 import { BulletList, InfoRow, Panel, ProfileHero, TagGroup } from '../../../components/profile'
@@ -34,7 +34,6 @@ export default function DiscoverDetail() {
   const badges = [
     d.badge && { label: d.badge, tone: BADGE_TONE[d.badge] ?? 'violet' },
     isPerson && item.mentor?.open && { label: 'Open to mentor', tone: 'violet' },
-    isPerson && item._uni?.short && { label: item._uni.short, tone: 'blue' },
   ].filter(Boolean)
 
   return (
@@ -47,10 +46,13 @@ export default function DiscoverDetail() {
         subtitle={d.subtitle}
         badges={badges}
         stats={d.facts.map(([label, value]) => ({ label, value: statValue(value) }))}
+        college={isPerson ? item._uni : null}
       />
 
       <View style={styles.pad}>
         <DetailActions kind={kind} item={item} />
+
+        {isPerson && item.publicId ? <Text selectable style={styles.publicId}>MyCampus ID · {item.publicId}</Text> : null}
 
         {d.body ? <Panel title={isPerson ? 'About' : 'Overview'} icon="document-text-outline"><RichText text={d.body} /></Panel> : null}
 
@@ -81,4 +83,5 @@ export default function DiscoverDetail() {
 const styles = themed(() => StyleSheet.create({
   scroll: { paddingBottom: 48 },
   pad: { padding: 16, gap: 12 },
+  publicId: { color: t.inkFaint, fontSize: 12, fontWeight: '600', textAlign: 'center', letterSpacing: 0.3 },
 }))

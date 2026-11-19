@@ -5,7 +5,7 @@ import { db, studentsVersion, universities, users } from './db.js'
 // Until they decide, seniors (year 4+) default to open — that's how the app bootstraps mentors.
 export const isMentor = (profile) => profile.mentor?.open ?? (profile.year ?? 0) >= 4
 
-const uniCache = () => Object.fromEntries(universities.all().map((u) => [u.id, { short: u.short, name: u.name }]))
+const uniCache = () => Object.fromEntries(universities.all().map((u) => [u.id, { short: u.short, name: u.name, logoUrl: u.logoVersion ? `/api/colleges/${u.id}/logo?v=${u.logoVersion}` : null }]))
 
 // A person's own campus is visible; other campuses are visible only if they're mentors.
 export function canSeePerson(viewer, row) {
@@ -28,9 +28,12 @@ export function connectionCounts() {
 // Public profile card: never includes email, never any rank or rating.
 // Pass `counts` (from connectionCounts) and/or an already-parsed `p` when building many cards.
 export function personView(row, unis = uniCache(), counts, p = JSON.parse(row.data)) {
+  // The college's registration number is between the student and their college: never on a public card.
+  const { rollNumber, ...shown } = p // eslint-disable-line no-unused-vars
   return stripRanking({
-    ...p,
+    ...shown,
     id: row.id,
+    publicId: row.public_id ?? null,
     university: row.university,
     mentor: { open: isMentor(p), topics: p.mentor?.topics ?? [] },
     connections: counts ? (counts.get(row.id) ?? 0) : connectionCount.get(row.id, row.id).n,

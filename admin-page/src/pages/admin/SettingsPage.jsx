@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { Activity, KeyRound, Plus, ShieldCheck, Trash2, Users } from 'lucide-react'
-import { request } from '../../api'
+import { Activity, Building2, KeyRound, Upload, Plus, ShieldCheck, Trash2, Users } from 'lucide-react'
+import { assetUrl, request, upload } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/feedback/Toast'
 import { PageHeader, SectionCard, StatusPill, TagChip } from '../../components/admin/PageChrome'
@@ -26,7 +26,7 @@ export default function SettingsPage() {
   const canSettings = hasPermission('settings')
   const tabs = [
     ...(canUsers ? [{ id: 'admins', label: 'Admin users', icon: Users }] : []),
-    ...(canSettings ? [{ id: 'verification', label: 'Verification', icon: ShieldCheck }, { id: 'audit', label: 'Audit log', icon: Activity }] : []),
+    ...(canSettings ? [{ id: 'college', label: 'College', icon: Building2 }, { id: 'verification', label: 'Verification', icon: ShieldCheck }, { id: 'audit', label: 'Audit log', icon: Activity }] : []),
     { id: 'roles', label: 'Roles & permissions', icon: ShieldCheck },
     { id: 'account', label: 'My account', icon: KeyRound },
   ]
@@ -44,6 +44,7 @@ export default function SettingsPage() {
         ))}
       </div>
       {active === 'admins' && <AdminUsers />}
+      {active === 'college' && <CollegeProfile />}
       {active === 'verification' && <Verification />}
       {active === 'audit' && <AuditLog />}
       {active === 'roles' && <RolesInfo />}
@@ -353,6 +354,57 @@ function MyAccount() {
         <Button variant="danger" onClick={() => setConfirmAll(true)}>Sign out of all devices</Button>
       </SectionCard>
       {confirmAll && <ConfirmDialog title="Sign out of all devices?" danger confirmText="Sign out everywhere" loading={busy} message="You'll need to sign in again here too." onConfirm={signOutEverywhere} onClose={() => setConfirmAll(false)} />}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// College profile: the logo students see on their profile and when they search for the college to join
+// ---------------------------------------------------------------------------
+function CollegeProfile() {
+  const toast = useToast()
+  const college = useAdminApi('/admin/college')
+  const [busy, setBusy] = useState(false)
+  const inputRef = React.useRef(null)
+  const c = college.data
+
+  const pick = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) return toast.error('Use a PNG, JPEG or WebP image.', { title: 'Wrong file type' })
+    if (file.size > 1024 * 1024) return toast.error('Keep the logo under 1 MB.', { title: 'Too large' })
+    setBusy(true)
+    try { await upload('/admin/college/logo', file); toast.success('Students will see it on their profiles.', { title: 'Logo updated' }); college.reload() } catch (err) { toast.error(err.message, { title: 'Upload failed' }) }
+    setBusy(false)
+  }
+  const remove = async () => {
+    setBusy(true)
+    try { await request('/admin/college/logo', { method: 'DELETE' }); toast.success('The college’s initials are shown instead.', { title: 'Logo removed' }); college.reload() } catch (err) { toast.error(err.message) }
+    setBusy(false)
+  }
+
+  if (college.loading && !c) return <Loading />
+  if (college.error) return <ErrorState message={college.error} onRetry={college.reload} />
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <SectionCard>
+        <div className="flex items-center gap-5">
+          <div className="w-24 h-24 flex items-center justify-center overflow-hidden flex-shrink-0" style={{ background: c?.logoUrl ? '#fff' : tokens.violetSoft, border: `1px solid ${tokens.hairline}`, borderRadius: 18 }}>
+            {c?.logoUrl ? <img src={assetUrl(c.logoUrl)} alt={`${c.name} logo`} className="w-full h-full object-contain" /> : <span className="text-xl font-bold" style={{ color: tokens.violetText }}>{c?.short}</span>}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-semibold" style={{ color: tokens.ink }}>{c?.name}</h2>
+            <p className="text-sm" style={{ color: tokens.inkSoft }}>{[c?.short, c?.city].filter(Boolean).join(' · ')}</p>
+            <p className="text-xs mt-2" style={{ color: tokens.inkFaint }}>Shown on every student’s profile and when people search for your college to join. Square PNG, JPEG or WebP, up to 1 MB.</p>
+            <div className="flex gap-2 mt-3">
+              <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={pick} />
+              <Button onClick={() => inputRef.current?.click()} loading={busy}><Upload className="w-4 h-4" aria-hidden /> {c?.logoUrl ? 'Replace logo' : 'Upload logo'}</Button>
+              {c?.logoUrl ? <Button variant="secondary" onClick={remove} disabled={busy}>Remove</Button> : null}
+            </div>
+          </div>
+        </div>
+      </SectionCard>
     </div>
   )
 }

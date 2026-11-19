@@ -25,6 +25,9 @@ export default function StudentListPage() {
   const [busy, setBusy] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [editingReg, setEditingReg] = useState(null)
+  const [regValue, setRegValue] = useState('')
+  const [regError, setRegError] = useState('')
   const allowed = hasPermission('users')
   const [params_, setParams] = useSearchParams()
   const tab = params_.get('tab') === 'requests' ? 'requests' : 'students'
@@ -116,7 +119,7 @@ export default function StudentListPage() {
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-[220px] max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: tokens.inkFaint }} aria-hidden />
-            <TextInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name or email" aria-label="Search students" style={{ paddingLeft: 36 }} />
+            <TextInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name, email, reg. no. or MyCampus ID" aria-label="Search students" style={{ paddingLeft: 36 }} />
           </div>
           <div className="w-36"><Select value={branch} onChange={(e) => { setBranch(e.target.value); setPage(1) }} aria-label="Branch"><option value="">All branches</option>{BRANCHES.map((b) => <option key={b}>{b}</option>)}</Select></div>
           <div className="w-36"><Select value={semester} onChange={(e) => { setSemester(e.target.value); setPage(1) }} aria-label="Semester"><option value="">All semesters</option>{[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <option key={n} value={n}>Semester {n}</option>)}</Select></div>
@@ -131,7 +134,7 @@ export default function StudentListPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
                   <thead><tr style={{ borderBottom: `1px solid ${tokens.hairline}`, color: tokens.inkFaint }}>
-                    <th className={th}>Student</th><th className={th}>Branch</th><th className={th}>Semester</th><th className={th}>Last seen</th><th className={th}>Status</th><th className={th}><span className="sr-only">Actions</span></th>
+                    <th className={th}>Student</th><th className={th}>IDs</th><th className={th}>Branch</th><th className={th}>Semester</th><th className={th}>Last seen</th><th className={th}>Status</th><th className={th}><span className="sr-only">Actions</span></th>
                   </tr></thead>
                   <tbody>
                     {d.items.map((s) => (
@@ -142,13 +145,20 @@ export default function StudentListPage() {
                             <div className="min-w-0"><div className="font-medium" style={{ color: tokens.ink }}>{s.name}</div><div className="text-[11px]" style={{ color: tokens.inkFaint }}>{s.email}</div></div>
                           </div>
                         </td>
+                        <td className={td}>
+                          <div className="text-[13px] font-medium whitespace-nowrap" style={{ color: tokens.ink, fontVariantNumeric: 'tabular-nums' }}>{s.rollNumber || <span style={{ color: tokens.inkFaint }}>No reg. no.</span>}</div>
+                          <div className="text-[11px] whitespace-nowrap" style={{ color: tokens.inkFaint, fontVariantNumeric: 'tabular-nums' }}>{s.publicId}</div>
+                        </td>
                         <td className={td}><TagChip>{s.branch || '—'}</TagChip></td>
                         <td className={td} style={{ color: tokens.inkSoft }}>{s.semester ? `Sem ${s.semester} · Year ${s.year}` : '—'}</td>
                         <td className={td} style={{ color: tokens.inkSoft }}>{s.lastLoginAt ? timeAgo(s.lastLoginAt) : 'Never'}</td>
                         <td className={td}>
                           {!s.verified ? <StatusPill kind="pending">Unconfirmed</StatusPill> : <StatusPill kind={s.status === 'active' ? 'approved' : 'closed'}>{s.status}</StatusPill>}
                         </td>
-                        <td className={`${td} text-right`}>
+                        <td className={`${td} text-right whitespace-nowrap`}>
+                          <button type="button" onClick={() => { setEditingReg(s); setRegValue(s.rollNumber || '') }} className="text-xs font-medium hover:underline mr-3" style={{ color: tokens.violetText }}>
+                            Edit reg. no.<span className="sr-only"> for {s.name}</span>
+                          </button>
                           <button type="button" onClick={() => setToggling(s)} className="text-xs font-medium hover:underline" style={{ color: s.status === 'active' ? tokens.red : tokens.violetText }}>
                             {s.status === 'active' ? 'Suspend' : 'Reactivate'}<span className="sr-only"> {s.name}</span>
                           </button>
@@ -173,6 +183,25 @@ export default function StudentListPage() {
         )}
         </>)}
       </div>
+
+      {editingReg && (
+        <Modal title={`Registration no. for ${editingReg.name}`} onClose={() => { setEditingReg(null); setRegError('') }} footer={<>
+          <Button variant="secondary" onClick={() => { setEditingReg(null); setRegError('') }}>Cancel</Button>
+          <Button loading={busy} onClick={async () => {
+            setBusy(true); setRegError('')
+            try {
+              await request(`/admin/students/${editingReg.id}/registration`, { method: 'PATCH', body: { rollNumber: regValue.trim() } })
+              toast.success(`${editingReg.name}’s registration no. is saved.`, { title: 'Saved' })
+              setEditingReg(null); roster.reload()
+            } catch (err) { setRegError(err.message) }
+            setBusy(false)
+          }}>Save</Button>
+        </>}>
+          <Field label="Your college’s registration / roll no." htmlFor="reg-no" error={regError} hint={`Only ${editingReg.name} and your college’s admins see this. Their MyCampus ID (${editingReg.publicId}) never changes.`}>
+            <TextInput id="reg-no" value={regValue} onChange={(e) => setRegValue(e.target.value)} maxLength={40} placeholder="e.g. F24-CSE-031" autoFocus />
+          </Field>
+        </Modal>
+      )}
 
       {importing && <ImportStudentsModal onClose={() => setImporting(false)} onImported={roster.reload} />}
 

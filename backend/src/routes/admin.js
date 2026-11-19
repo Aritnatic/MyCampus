@@ -209,12 +209,13 @@ adminRoutes.get('/admin/students', requireAuth, requirePermission('users'), wrap
   }
   const all = everyone
     .filter(({ row, p }) => (!branch || branchCode(p.branch) === branch) && (!semester || p.semester === semester)
-      && (!needle || p.name.toLowerCase().includes(needle) || row.email.includes(needle)))
+      && (!needle || p.name.toLowerCase().includes(needle) || row.email.includes(needle)
+        || String(p.rollNumber ?? '').toLowerCase().includes(needle) || String(row.public_id ?? '').toLowerCase().includes(needle)))
     .sort((a, b) => a.p.name.localeCompare(b.p.name))
   res.json({
     total: all.length, page, limit, summary,
     items: all.slice((page - 1) * limit, page * limit).map(({ row, p }) => ({
-      id: row.id, name: p.name, email: row.email, branch: branchCode(p.branch), year: p.year, semester: p.semester,
+      id: row.id, publicId: row.public_id, rollNumber: p.rollNumber ?? '', name: p.name, email: row.email, branch: branchCode(p.branch), year: p.year, semester: p.semester,
       status: row.status, verified: !!row.email_verified, lastLoginAt: row.last_login_at,
     })),
   })

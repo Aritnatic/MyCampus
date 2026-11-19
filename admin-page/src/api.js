@@ -34,3 +34,22 @@ export async function request(path, { method = 'GET', body } = {}) {
   }
   return json
 }
+
+// Sends a file as the raw request body (logo uploads). Same error handling as request().
+export async function upload(path, file, { method = 'PUT' } = {}) {
+  let res
+  try {
+    res = await fetch(`${BASE}${path}`, { method, headers: { 'Content-Type': file.type, ...(token && { Authorization: `Bearer ${token}` }) }, body: file })
+  } catch {
+    throw new ApiError("Can't reach the MyCampus server. Is the API running?", 0)
+  }
+  const json = await res.json().catch(() => null)
+  if (!res.ok) {
+    if (res.status === 401 && token) onUnauthorized()
+    throw new ApiError(json?.error ?? 'Upload failed.', res.status)
+  }
+  return json
+}
+
+// Absolute URL for a server path such as a college logo ("/api/colleges/cvrp/logo?v=…").
+export const assetUrl = (path) => (path ? `${BASE.replace(/\/api$/, '')}${path}` : null)

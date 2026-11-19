@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { request } from '../api'
 import { Button, Field, FormError, SkeletonCards, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { useApi } from '../hooks/useApi'
+import { CollegeLogo } from '../components/CollegeBadge'
 import { tokens as t, radius, themed } from '../theme'
 
 // Join your college without a college email: pick the college, give your roll number, and an admin who manages
@@ -47,10 +48,13 @@ export default function Join() {
   const [editing, setEditing] = useState(false)
   const set = (k) => (v) => { setF((x) => ({ ...x, [k]: v })); setErrors((e) => ({ ...e, [k]: null })); setFormError('') }
 
-  // One college in the list (the pilot): choose it for them. After a rejection, start from what they sent.
-  useEffect(() => {
-    if (colleges.data?.length === 1) setF((x) => ({ ...x, university: x.university || colleges.data[0].id }))
-  }, [colleges.data])
+  // Search the colleges on MyCampus (debounced so typing doesn't fire a request per letter).
+  const [q, setQ] = useState('')
+  const [debounced, setDebounced] = useState('')
+  useEffect(() => { const id = setTimeout(() => setDebounced(q.trim()), 250); return () => clearTimeout(id) }, [q])
+  const found = useApi(`/join/colleges?q=${encodeURIComponent(debounced)}`)
+  const chosen = colleges.data?.find((c) => c.id === f.university)
+  // After a rejection, start from what they sent.
   useEffect(() => {
     const r = latest.data
     if (r?.status === 'rejected') setF((x) => ({ ...x, university: r.university, rollNumber: r.rollNumber, branch: BRANCHES.find(([, n]) => n === r.branch)?.[0] ?? '', year: r.year, semester: r.semester }))
@@ -124,12 +128,43 @@ export default function Join() {
             <Text style={styles.body}>{req.reason || 'Check your roll number and details, then send it again.'}</Text>
           </View>
         ) : (
-          <Text style={styles.intro}>No college email? Ask to join with your roll number. An admin checks it against the college records, and once approved you’ll see your campus notices, exams, results and safety alerts.</Text>
+          <Text style={styles.intro}>Find your college, then ask to join with your roll number. An admin checks it against the college records, and once approved your account becomes a verified student: you’ll see your campus notices, exams, results and safety alerts.</Text>
         )}
 
-        {colleges.data?.length > 1 && (
-          <Choices label="College" options={colleges.data.map((c) => [c.id, c.short])} value={f.university} onChange={set('university')} error={errors.university} />
-        )}
+        <View style={{ gap: 8 }}>
+          <Text style={styles.label}>Your college</Text>
+          {chosen ? (
+            <View style={[styles.collegeRow, styles.collegeChosen]}>
+              <CollegeLogo college={chosen} size={36} />
+              <View style={{ flex: 1 }}><Text style={styles.collegeName}>{chosen.name}</Text><Text style={styles.collegeMeta}>{chosen.city ?? ''}</Text></View>
+              <Pressable onPress={() => set('university')('')} accessibilityRole="button" accessibilityLabel="Change college" hitSlop={8}><Text style={styles.change}>Change</Text></Pressable>
+            </View>
+          ) : (
+            <>
+              <View style={styles.search}>
+                <Ionicons name="search" size={16} color={t.inkFaint} />
+                <TextInput style={styles.searchInput} value={q} onChangeText={setQ} placeholder="Search by college name or city" placeholderTextColor={t.inkFaint} autoCorrect={false} accessibilityLabel="Search for your college" />
+              </View>
+              {(found.data ?? []).map((c) => (
+                <Pressable key={c.id} onPress={() => { set('university')(c.id); setQ('') }} accessibilityRole="button" accessibilityLabel={`Choose ${c.name}`} style={styles.collegeRow}>
+                  <CollegeLogo college={c} size={36} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.collegeName}>{c.name}</Text>
+                    <Text style={styles.collegeMeta}>{[c.city, c.members ? `${c.members} student${c.members === 1 ? '' : 's'} on MyCampus` : null].filter(Boolean).join(' · ')}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={t.inkFaint} />
+                </Pressable>
+              ))}
+              {found.data && found.data.length === 0 ? (
+                <View style={styles.notFound}>
+                  <Text style={styles.collegeName}>“{debounced}” isn’t on MyCampus yet</Text>
+                  <Text style={styles.collegeMeta}>Only colleges that have joined MyCampus can verify their students. Ask your college office to join, then come back here.</Text>
+                </View>
+              ) : null}
+            </>
+          )}
+          {errors.university ? <Text style={styles.error}>{errors.university}</Text> : null}
+        </View>
         <Field label="Roll number" value={f.rollNumber} onChangeText={set('rollNumber')} autoCapitalize="characters" autoCorrect={false} placeholder="As printed on your ID card" error={errors.rollNumber} />
         <Choices label="Branch" options={BRANCHES.map(([c]) => [c, c])} value={f.branch} onChange={set('branch')} error={errors.branch} />
         <Choices label="Year" options={[1, 2, 3].map((n) => [n, `Year ${n}`])} value={f.year} onChange={set('year')} error={errors.year} />
@@ -158,4 +193,12 @@ const styles = themed(() => StyleSheet.create({
   detailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: t.hairline },
   detailKey: { color: t.inkSoft, fontSize: 14 },
   detailVal: { color: t.ink, fontSize: 14, fontWeight: '600' },
+  search: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: t.sunken, borderRadius: radius.button, borderWidth: 1, borderColor: t.hairline, paddingHorizontal: 12 },
+  searchInput: { flex: 1, color: t.ink, paddingVertical: 12, fontSize: 14 },
+  collegeRow: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.button, backgroundColor: t.surface, borderWidth: 1, borderColor: t.hairline },
+  collegeChosen: { borderColor: t.violet, backgroundColor: t.violetSoft },
+  collegeName: { color: t.ink, fontSize: 14, fontWeight: '700' },
+  collegeMeta: { color: t.inkSoft, fontSize: 12, marginTop: 2, lineHeight: 17 },
+  change: { color: t.violetText, fontSize: 13, fontWeight: '700' },
+  notFound: { padding: 14, borderRadius: radius.button, borderWidth: 1, borderStyle: 'dashed', borderColor: t.hairline, gap: 4 },
 }))

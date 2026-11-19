@@ -3,7 +3,7 @@ import { useRouter } from 'expo-router'
 import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { request, SITE_URL } from '../../api'
 import { Button, PasswordSheet, Segmented, useToast } from '../../components/ui'
-import { Panel, ProfileHero, TagGroup } from '../../components/profile'
+import { InfoRow, Panel, ProfileHero, TagGroup } from '../../components/profile'
 import { JoinCollegeCard } from '../../components/JoinCollegeCard'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
@@ -42,12 +42,20 @@ export default function Me() {
         subtitle={user.branch ? `${user.branch} · Year ${user.year} · Semester ${user.semester}` : user.email}
         badges={badges}
         stats={stats}
+        college={user.role === 'student' ? user.college : null}
       />
 
       <View style={styles.pad}>
         <View style={styles.actionsRow}>
           <Button label="Edit profile" icon="create-outline" onPress={() => router.push('/profile-edit')} style={{ flex: 1 }} />
         </View>
+
+        <Panel title="Your IDs" icon="id-card-outline" style={{ gap: 14 }}>
+          <InfoRow icon="finger-print-outline" label="MyCampus ID (yours for good, share it freely)" value={user.publicId ?? '—'} selectable />
+          {user.role === 'student' ? (
+            <InfoRow icon="school-outline" label={`${user.college?.short ?? 'College'} registration no. (only you and your college see this)`} value={user.rollNumber || 'Not added yet. Your college adds it.'} selectable />
+          ) : null}
+        </Panel>
 
         <JoinCollegeCard />
 

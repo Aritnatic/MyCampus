@@ -14,7 +14,7 @@ import { discoverRoutes } from './routes/discover.js'
 import { eventRoutes } from './routes/events.js'
 import { feedbackRoutes } from './routes/feedback.js'
 import { guidanceRoutes } from './routes/guidance.js'
-import { joinRoutes } from './routes/join.js'
+import { joinRoutes, publicCollegeRoutes } from './routes/join.js'
 import { meRoutes, streamHandler } from './routes/me.js'
 import { noteRoutes } from './routes/notes.js'
 import { privacyRoutes } from './routes/privacy.js'
@@ -47,6 +47,7 @@ export function createApp() {
 
   const api = express.Router()
   // Public routes first; every router after these requires a signed-in user.
+  api.use(publicCollegeRoutes)
   api.use(authRoutes)
   api.use(meRoutes, privacyRoutes, contentRoutes, discoverRoutes, socialRoutes, eventRoutes, noteRoutes, alertRoutes, careerRoutes, feedbackRoutes, guidanceRoutes, joinRoutes)
   api.use(alertAdminRoutes, adminRoutes)
