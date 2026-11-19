@@ -16,7 +16,7 @@ const TONES = themed(() => ({
 
 // Swipeable highlight cards: profile nudge, next exam, pinned notice, next event.
 // banners: [{ key, tone, icon, eyebrow, title, body, cta, onPress }]
-export function BannerCarousel({ banners }) {
+export function BannerCarousel({ banners, onDismiss }) {
   const { width } = useWindowDimensions()
   const [page, setPage] = useState(0)
   if (banners.length === 0) return null
@@ -37,8 +37,8 @@ export function BannerCarousel({ banners }) {
         {banners.map((b) => {
           const [bg, fg] = TONES[b.tone]
           return (
+            <View key={b.key} style={{ width: cardW }}>
             <Pressable
-              key={b.key}
               onPress={b.onPress}
               accessibilityRole="button"
               accessibilityLabel={`${b.eyebrow}. ${b.title}`}
@@ -55,6 +55,18 @@ export function BannerCarousel({ banners }) {
               </View>
               <Ionicons name={b.icon} size={64} color={fg} style={{ opacity: 0.35 }} />
             </Pressable>
+              {onDismiss && b.dismissId ? (
+                <Pressable
+                  onPress={() => onDismiss(b)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Hide ${b.title} from Home`}
+                  style={({ pressed }) => [styles.dismiss, pressed && { opacity: 0.6 }]}
+                >
+                  <Ionicons name="close" size={16} color={t.inkSoft} />
+                </Pressable>
+              ) : null}
+            </View>
           )
         })}
       </ScrollView>
@@ -110,6 +122,7 @@ export function FilterChips({ options, value, onChange }) {
 
 const styles = themed(() => StyleSheet.create({
   banner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderRadius: radius.container, borderWidth: 1, padding: 16, minHeight: 132 },
+  dismiss: { position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: t.surface, opacity: 0.9 },
   eyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 0.8 },
   bannerTitle: { color: t.ink, fontSize: 18, fontWeight: '800', lineHeight: 23 },
   bannerBody: { color: t.inkSoft, fontSize: 13 },

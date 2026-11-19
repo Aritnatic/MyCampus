@@ -1,10 +1,11 @@
 import { JoinCollegeCard } from '../../components/JoinCollegeCard'
 import { noticeEnded } from '../../when'
+import { useDismissed } from '../../dismissed'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Async, Card, Chip, SectionHeader, formatDate } from '../../components/ui'
+import { Async, Card, Chip, SectionHeader, formatDate , useToast} from '../../components/ui'
 import { BannerCarousel, FilterChips, ShortcutGrid } from '../../components/home'
 import { useAuth } from '../../context/AuthContext'
 import { useApi } from '../../hooks/useApi'
@@ -38,6 +39,8 @@ function daysUntil(isoDate) {
 export default function Home() {
   const { user } = useAuth()
   const router = useRouter()
+  const toast = useToast()
+  const dismissed = useDismissed(user.id)
   const [filter, setFilter] = useState('all')
   const notices = useApi('/content/notices')
   const events = useApi('/content/events')
@@ -53,12 +56,20 @@ export default function Home() {
   const forYou = picks(matches.data)
   const gaps = missingProfile(user)
 
-  const banners = [
-    gaps.length > 0 && { key: 'profile', tone: 'violet', icon: 'person-circle-outline', eyebrow: 'Get matched', title: 'Finish your profile', body: 'Add skills and goals to see people, projects and mentors.', cta: 'Set up profile', onPress: () => router.push('/profile-edit?onboarding=1') },
-    nextExam && { key: 'exam', tone: 'yellow', icon: 'calendar-outline', eyebrow: `Next exam ${daysUntil(nextExam.date)}`, title: nextExam.subjectName, body: `${nextExam.day} · ${nextExam.startTime}–${nextExam.endTime}${nextExam.room ? ` · ${nextExam.room}` : ''}`, cta: 'Timetable', onPress: () => router.push('/exams') },
-    sortedNotices[0] && { key: 'notice', tone: 'blue', icon: 'newspaper-outline', eyebrow: sortedNotices[0].pinned ? 'Pinned notice' : 'Latest notice', title: sortedNotices[0].title, body: formatDate(sortedNotices[0].publishedAt), cta: 'Read', onPress: () => router.push(`/notice/${sortedNotices[0].id}`) },
-    upcomingEvents[0] && { key: 'event', tone: 'green', icon: 'ticket-outline', eyebrow: 'Happening soon', title: upcomingEvents[0].title, body: `${formatDate(upcomingEvents[0].startDate, { day: 'numeric', month: 'short' })}${upcomingEvents[0].location ? ` · ${upcomingEvents[0].location}` : ''}`, cta: 'View event', onPress: () => router.push(`/event/${upcomingEvents[0].id}`) },
+  // Big sliding cards. Each can be hidden with its ✕; the next item of the same kind then takes its place.
+  const nextNotice = sortedNotices.find((n) => !dismissed.isHidden(`notice:${n.id}`))
+  const nextEvent = upcomingEvents.find((e) => !dismissed.isHidden(`event:${e.id}`))
+  const examKey = nextExam && `exam:${nextExam.id ?? `${nextExam.subjectCode}-${nextExam.date}`}`
+  const banners = !dismissed.ready ? [] : [
+    gaps.length > 0 && !dismissed.isHidden('profile') && { key: 'profile', dismissId: 'profile', tone: 'violet', icon: 'person-circle-outline', eyebrow: 'Get matched', title: 'Finish your profile', body: 'Add skills and goals to see people, projects and mentors.', cta: 'Set up profile', onPress: () => router.push('/profile-edit?onboarding=1') },
+    nextExam && !dismissed.isHidden(examKey) && { key: 'exam', dismissId: examKey, tone: 'yellow', icon: 'calendar-outline', eyebrow: `Next exam ${daysUntil(nextExam.date)}`, title: nextExam.subjectName, body: `${nextExam.day} · ${nextExam.startTime}–${nextExam.endTime}${nextExam.room ? ` · ${nextExam.room}` : ''}`, cta: 'Timetable', onPress: () => router.push('/exams') },
+    nextNotice && { key: 'notice', dismissId: `notice:${nextNotice.id}`, tone: 'blue', icon: 'newspaper-outline', eyebrow: nextNotice.pinned ? 'Pinned notice' : nextNotice === sortedNotices[0] ? 'Latest notice' : 'Notice', title: nextNotice.title, body: formatDate(nextNotice.publishedAt), cta: 'Read', onPress: () => router.push(`/notice/${nextNotice.id}`) },
+    nextEvent && { key: 'event', dismissId: `event:${nextEvent.id}`, tone: 'green', icon: 'ticket-outline', eyebrow: 'Happening soon', title: nextEvent.title, body: `${formatDate(nextEvent.startDate, { day: 'numeric', month: 'short' })}${nextEvent.location ? ` · ${nextEvent.location}` : ''}`, cta: 'View event', onPress: () => router.push(`/event/${nextEvent.id}`) },
   ].filter(Boolean)
+  const hideBanner = (b) => {
+    dismissed.dismiss(b.dismissId)
+    toast.show(b.key === 'notice' ? 'Hidden. It’s still in Notices.' : b.key === 'event' ? 'Hidden. It’s still in Events.' : 'Hidden from Home.')
+  }
 
   const go = (href) => () => router.push(href)
   const shortcuts = [
@@ -94,7 +105,7 @@ export default function Home() {
       </View>
 
       <View style={{ marginTop: 16 }}>
-        <BannerCarousel banners={banners} />
+        <BannerCarousel banners={banners} onDismiss={hideBanner} />
       </View>
 
       <View style={styles.pad}>
