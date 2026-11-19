@@ -63,7 +63,10 @@ discoverRoutes.get('/discover/:kind/:id', wrap(async (req, res) => {
   if (req.params.kind === 'people') {
     const row = users.byId(req.params.id)
     if (!row || !canSeePerson(req.user, row)) throw new HttpError(404, 'Not found.')
-    return res.json({ ...personView(row, unis), contact: contactFor(req.user, row) })
+    // Real count of what they're on (projects, startups and approved research), not a stored number.
+    const projects = ['project', 'startup', 'research']
+      .flatMap((k) => docs.list(k).filter((d) => (d.teamIds ?? []).includes(row.id) && !['proposed', 'rejected'].includes(d.status))).length
+    return res.json({ ...personView(row, unis), projects, contact: contactFor(req.user, row) })
   }
   const doc = docs.get(spec.kind, req.params.id)
   const [view] = doc && canView(req.user, spec.kind, doc) ? viewDocs(spec.kind, [doc], req.user) : []

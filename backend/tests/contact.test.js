@@ -61,3 +61,13 @@ describe('deleting a student (admin)', () => {
     assert.equal((await call('/auth/login', { method: 'POST', body: { email: 'to.delete@students.cvrp.edu.in', password: 'Delete-me-pass9' } })).status, 401)
   })
 })
+
+describe('profile numbers', () => {
+  it('counts the projects someone is really on', async () => {
+    const t = await as('aritra')
+    const vikram = await meOf('vikram')
+    const before = (await call(`/discover/people/${vikram.id}`, { token: t })).body.projects
+    await call('/projects', { token: await as('vikram'), method: 'POST', body: { title: 'Counted Project', description: 'Exists only to be counted.', category: 'Other' } })
+    assert.equal((await call(`/discover/people/${vikram.id}`, { token: t })).body.projects, before + 1)
+  })
+})

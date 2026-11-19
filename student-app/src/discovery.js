@@ -17,10 +17,11 @@ export const KINDS = {
     }),
     detail: (s) => ({
       title: s.name,
-      subtitle: `${s.branch} · Year ${s.year} · ${s._uni?.name}`,
+      // The college shows as a badge (logo + name) right below, so it isn't repeated here.
+      subtitle: [s.branch, s.year && `Year ${s.year}`].filter(Boolean).join(' · '),
       badge: s.verified ? 'Verified' : null,
       body: s.bio,
-      facts: [['Projects', s.projects], ['Connections', s.connections], ['Year', s.year]],
+      facts: [['Projects', s.projects ?? 0], ['Connections', s.connections ?? 0], ['Year', s.year]],
       groups: [
         { title: 'Skills', items: s.skills, tone: 'violet' },
         { title: 'Interests', items: s.interests, tone: 'blue' },
