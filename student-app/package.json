@@ -31,7 +31,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "update": "EXPO_PUBLIC_API_URL=https://nonmaritime-aaden-gneissoid.ngrok-free.dev/api eas update --channel preview --platform android"
+    "update": "EXPO_PUBLIC_API_URL=https://nonmaritime-aaden-gneissoid.ngrok-free.dev/api eas update --channel preview --environment preview --platform android"
   },
   "private": true
 }
