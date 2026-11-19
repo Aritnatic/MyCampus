@@ -8,13 +8,13 @@ import { requestLogger } from './logger.js'
 import { adminRoutes } from './routes/admin.js'
 import { alertAdminRoutes, alertRoutes } from './routes/alerts.js'
 import { authRoutes } from './routes/auth.js'
-import { campusRoutes } from './routes/campus.js'
 import { careerRoutes } from './routes/career.js'
 import { contentRoutes } from './routes/content.js'
 import { discoverRoutes } from './routes/discover.js'
 import { eventRoutes } from './routes/events.js'
 import { feedbackRoutes } from './routes/feedback.js'
 import { guidanceRoutes } from './routes/guidance.js'
+import { joinRoutes } from './routes/join.js'
 import { meRoutes, streamHandler } from './routes/me.js'
 import { noteRoutes } from './routes/notes.js'
 import { privacyRoutes } from './routes/privacy.js'
@@ -25,7 +25,9 @@ export function createApp() {
   const app = express()
   app.disable('x-powered-by')
   // Behind a reverse proxy in production, so rate limiting sees the real client IP.
-  if (config.production) app.set('trust proxy', 1)
+  // Behind one proxy (the host's HTTPS proxy, or an ngrok tunnel in development) the real client address is in
+  // X-Forwarded-For; trusting that one hop keeps rate limits per phone instead of one shared bucket for everyone.
+  if (config.production || process.env.TRUST_PROXY === '1') app.set('trust proxy', 1)
   app.use(requestLogger)
   app.use(helmet())
   app.use(cors({ origin: config.corsOrigin === '*' ? true : config.corsOrigin.split(',') }))
@@ -46,7 +48,7 @@ export function createApp() {
   const api = express.Router()
   // Public routes first; every router after these requires a signed-in user.
   api.use(authRoutes)
-  api.use(meRoutes, privacyRoutes, contentRoutes, discoverRoutes, socialRoutes, eventRoutes, noteRoutes, alertRoutes, campusRoutes, careerRoutes, feedbackRoutes, guidanceRoutes)
+  api.use(meRoutes, privacyRoutes, contentRoutes, discoverRoutes, socialRoutes, eventRoutes, noteRoutes, alertRoutes, careerRoutes, feedbackRoutes, guidanceRoutes, joinRoutes)
   api.use(alertAdminRoutes, adminRoutes)
   api.use((req, res) => res.status(404).json({ error: 'Not found.' }))
   app.use('/api', api)

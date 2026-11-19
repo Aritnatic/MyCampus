@@ -8,6 +8,7 @@ import {
   getDashboardStats,
 } from '../../data/admin'
 import { useStoreRevision } from '../../data/store'
+import { useAdminApi } from '../../hooks/useAdminApi'
 import { formatRelative } from '../../utils/format'
 import { tokens, radius } from '../../theme'
 import { SectionCard, StatusPill } from '../../components/admin/PageChrome'
@@ -51,10 +52,11 @@ const PENDING_META = {
   exams:      { label: 'exams to schedule',  singular: 'exam to schedule',  path: '/admin/exams-results?tab=exams&status=draft' },
   results:    { label: 'results to publish', singular: 'result to publish', path: '/admin/exams-results?tab=results&status=pending' },
   placements: { label: 'job drafts',         singular: 'job draft',         path: '/admin/placements?status=draft' },
+  joins:      { label: 'students asking to join', singular: 'student asking to join', path: '/admin/students?tab=requests' },
 }
 
 export default function AdminDashboard() {
-  const { admin, loading: authLoading } = useAuth()
+  const { admin, loading: authLoading, hasPermission } = useAuth()
   useStoreRevision() // re-render when server data syncs in or a failed write rolls back
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
@@ -98,7 +100,9 @@ function ScrollHint({ visible, label = 'Scroll' }) {
 
   const uni = admin.university
   const recent = getRecentActivity(uni, 12)
-  const pending = getPendingItems(uni)
+  // Join requests live on the server (not in the synced lists), so they're fetched here; only admins who manage students see them.
+  const joinReqs = useAdminApi(hasPermission?.('users') ? '/admin/join-requests?status=pending' : null, { pollMs: 30000 })
+  const pending = { ...getPendingItems(uni), joins: joinReqs.data?.length ?? 0 }
 
   // Discovery-pop auto-dismiss: when hoveredCard changes, show the pop for ~1.4s
   // then hide it, even if the mouse is still over the card. Leaving the card
@@ -247,7 +251,7 @@ function ScrollHint({ visible, label = 'Scroll' }) {
                 <span className="text-[12px] flex-1 truncate" style={{ color: tokens.inkSoft }}>
                   {row.count === 1 ? row.singular : row.label}
                 </span>
-                <StatusPill kind={row.kind === 'events' || row.kind === 'results' ? 'pending' : 'draft'}>
+                <StatusPill kind={row.kind === 'events' || row.kind === 'results' || row.kind === 'joins' ? 'pending' : 'draft'}>
                   {row.kind}
                 </StatusPill>
                   <button

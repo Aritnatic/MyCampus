@@ -19,6 +19,7 @@ export function AdminBadge({
     unverified: { label: 'Unverified', class: 'admin-badge-warning', dot: 'warning' },
     open: { label: 'Open', class: 'admin-badge-success', dot: 'success' },
     closed: { label: 'Closed', class: 'admin-badge-gray', dot: 'gray' },
+    expired: { label: 'Deadline passed', class: 'admin-badge-warning', dot: 'warning' },
     urgent: { label: 'Urgent', class: 'admin-badge-danger', dot: 'danger' },
     high: { label: 'High', class: 'admin-badge-warning', dot: 'warning' },
     normal: { label: 'Normal', class: 'admin-badge-info', dot: 'info' },

@@ -40,8 +40,8 @@ const slug = (s) => s.toLowerCase().replace(/^(dr|prof)\.?\s+/, '').replace(/[^a
 export async function seed() {
   // notices/events/exams/results/jobs use the admin panel's data model (admins own them);
   // `exams.js` here only supplies per-student grades, which no admin screen creates yet.
-  const [uni, students, grades, notes, projects, startups, research, faculty, notices, events, exams, placements, campus, career] = await Promise.all(
-    ['universities', 'students', 'exams', 'notes', 'projects', 'startups', 'research', 'faculty', 'admin-notices', 'admin-events', 'admin-exams', 'admin-placements', 'campus-map', 'career'].map(load),
+  const [uni, students, grades, notes, projects, startups, research, faculty, notices, events, exams, placements, career] = await Promise.all(
+    ['universities', 'students', 'exams', 'notes', 'projects', 'startups', 'research', 'faculty', 'admin-notices', 'admin-events', 'admin-exams', 'admin-placements', 'career'].map(load),
   )
 
   const passwordHash = await hashPassword(config.seedPassword) // before the transaction: don't await inside it
@@ -62,7 +62,6 @@ export async function seed() {
       for (const item of items) docs.put(kind, shiftDates({ university: DEFAULT_UNI, ...item }, daysSinceAnchor()))
     }
 
-    docs.put('campus_map', { id: 'map-cvrp', university: 'cvrp', status: 'published', buildings: campus.campusBuildings, paths: campus.campusPaths, landmarks: campus.campusLandmarks })
 
     const insertUser = db.prepare(
       'INSERT INTO users (id, email, password_hash, role, university, status, data) VALUES (?, ?, ?, ?, ?, ?, ?)',

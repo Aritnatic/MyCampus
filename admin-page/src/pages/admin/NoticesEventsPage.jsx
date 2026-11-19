@@ -200,6 +200,14 @@ export default function NoticesEventsPage({ defaultTab = 'notices' }) {
     setEventModalOpen(true)
   }
 
+  // Approve / Reject straight from the table. Both fields move together: the server announces an event to
+  // students when `status` becomes approved, and the table filters on `approvalStatus`.
+  const decideEvent = (event, decision) => {
+    events.update(event.id, { status: decision, approvalStatus: decision, reviewedAt: new Date().toISOString() })
+    bump()
+    toast.success(decision === 'approved' ? `"${event.title}" is approved and students were notified.` : `"${event.title}" was rejected.`, { title: decision === 'approved' ? 'Approved' : 'Rejected' })
+  }
+
   const handleEventSubmit = (e) => {
     e.preventDefault()
     if (editingEvent) {
@@ -391,6 +399,7 @@ export default function NoticesEventsPage({ defaultTab = 'notices' }) {
               rows={filteredEvents}
               onRegistrations={setRegEvent}
               onEdit={openEditEvent}
+              onDecide={decideEvent}
               onDelete={(e) => setDeleteConfirm({ open: true, type: 'event', id: e.id })}
             />
           </FilterBar>
@@ -704,7 +713,9 @@ function NoticesTable({ rows, onEdit, onDelete }) {
               <Td>
                 <TagChip>{n.category}</TagChip>
               </Td>
-              <Td><StatusPill kind={n.status === 'published' ? 'approved' : n.status === 'draft' ? 'draft' : 'closed'}>{n.status}</StatusPill></Td>
+              <Td>{n.status === 'published' && n.expiresAt && new Date(n.expiresAt) < new Date()
+                ? <StatusPill kind="closed">expired</StatusPill>
+                : <StatusPill kind={n.status === 'published' ? 'approved' : n.status === 'draft' ? 'draft' : 'closed'}>{n.status}</StatusPill>}</Td>
               <Td>
                 {n.priority === 'urgent'
                   ? <StatusPill kind="urgent">urgent</StatusPill>
@@ -732,7 +743,7 @@ function NoticesTable({ rows, onEdit, onDelete }) {
   )
 }
 
-function EventsTable({ rows, onEdit, onDelete, onRegistrations }) {
+function EventsTable({ rows, onEdit, onDecide, onDelete, onRegistrations }) {
   if (rows.length === 0) return <EmptyState label="No events match the current filters" />
   return (
     <div className="overflow-x-auto">
@@ -789,11 +800,11 @@ function EventsTable({ rows, onEdit, onDelete, onRegistrations }) {
               </Td>
               <Td align="right">
                 <div className="flex items-center justify-end gap-0.5">
-                  {e.approvalStatus === 'pending' && (
+                  {(e.approvalStatus === 'pending' || e.approvalStatus === 'under_review') && (
                     <>
                       <button
                         type="button"
-                        onClick={() => onEdit({...e, approvalStatus: 'approved'})}
+                        onClick={() => onDecide(e, 'approved')}
                         className="inline-flex items-center px-2 h-7 text-[11px] font-medium transition-colors"
                         style={{ background: tokens.greenSoft, color: tokens.greenText, border: `1px solid ${tokens.green}`, borderRadius: radius.chip }}
                       >
@@ -801,7 +812,7 @@ function EventsTable({ rows, onEdit, onDelete, onRegistrations }) {
                       </button>
                       <button
                         type="button"
-                        onClick={() => onEdit({...e, approvalStatus: 'rejected'})}
+                        onClick={() => onDecide(e, 'rejected')}
                         className="inline-flex items-center px-2 h-7 text-[11px] font-medium transition-colors"
                         style={{ background: tokens.violetSoft, color: tokens.violetText, border: `1px solid ${tokens.violet}`, borderRadius: radius.chip }}
                       >

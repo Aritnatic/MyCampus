@@ -1,3 +1,5 @@
+import { JoinCollegeCard } from '../../components/JoinCollegeCard'
+import { noticeEnded } from '../../when'
 import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
@@ -47,7 +49,7 @@ export default function Home() {
 
   const nextExam = (exams.data ?? []).filter((e) => e.date >= today()).sort((a, b) => a.date.localeCompare(b.date))[0]
   const upcomingEvents = (events.data ?? []).filter((e) => e.status === 'upcoming')
-  const sortedNotices = [...(notices.data ?? [])].sort(byPinnedThenNewest)
+  const sortedNotices = (notices.data ?? []).filter((n) => !noticeEnded(n)).sort(byPinnedThenNewest) // expired notices live under Notices → Older
   const forYou = picks(matches.data)
   const gaps = missingProfile(user)
 
@@ -64,7 +66,6 @@ export default function Home() {
     { key: 'exams', icon: 'calendar-outline', label: 'Exams & results', tone: 'yellow', onPress: go('/exams') },
     { key: 'events', icon: 'ticket-outline', label: 'My events', tone: 'green', onPress: go('/my-events') },
     { key: 'notes', icon: 'book-outline', label: 'Notes', tone: 'violet', onPress: go('/notes') },
-    { key: 'map', icon: 'map-outline', label: 'Campus map', tone: 'green', onPress: go('/map') },
     { key: 'mentors', icon: 'people-outline', label: 'Mentors & peers', tone: 'violet', onPress: go('/discover') },
     { key: 'career', icon: 'trail-sign-outline', label: 'Career', tone: 'yellow', onPress: go('/career') },
     { key: 'safety', icon: 'shield-checkmark-outline', label: 'Safety', tone: 'blue', onPress: go('/alerts') },
@@ -89,6 +90,7 @@ export default function Home() {
           <Ionicons name="search" size={18} color={t.inkFaint} />
           <Text style={styles.searchText}>Search projects, people, notices…</Text>
         </Pressable>
+        <JoinCollegeCard style={{ marginTop: 12 }} />
       </View>
 
       <View style={{ marginTop: 16 }}>

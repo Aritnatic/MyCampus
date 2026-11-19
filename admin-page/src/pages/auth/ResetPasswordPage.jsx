@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { AlertCircle, CheckCircle2, Loader2, Shield } from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import BrandMark from '../../components/BrandMark'
 import { request } from '../../api'
 
 const input = 'w-full px-3 py-2.5 border border-admin-200 rounded-lg text-admin-900 placeholder-admin-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-admin-50'
@@ -59,7 +60,7 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen bg-admin-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md bg-white rounded-xl border border-admin-200 p-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center"><Shield className="w-5 h-5 text-white" /></div>
+          <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center"><BrandMark className="w-5 h-5 text-white" /></div>
           <div><h1 className="text-lg font-bold text-admin-900">MyCampus</h1><p className="text-xs text-admin-500">Admin panel</p></div>
         </div>
 

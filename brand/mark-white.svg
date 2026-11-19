@@ -1,0 +1,6 @@
+<!-- MyCampus mark. 96-unit grid: a lowercase "m" of two equal arches (radius 13) on three legs (stroke 14,
+     centres 22 / 48 / 74). The right arch stands 21 units higher than the left, so the "m" is also two campus
+     buildings and a step up: a place, and students rising in it. Square ends, no ornament, one colour. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96">
+  <path d="M22 87V61a13 13 0 0 1 26 0M48 87V40a13 13 0 0 1 26 0V87" transform="translate(0 -5.5)" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="butt" stroke-linejoin="miter"/>
+</svg>

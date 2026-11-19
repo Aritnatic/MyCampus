@@ -77,6 +77,36 @@ const initialResultForm = {
   examId: '',
   status: 'pending',
   fileName: '',
+  totalStudents: '',
+  passed: '',
+  averagePercentage: '',
+}
+
+// Pass mark when a results sheet has percentages but no grade column.
+const PASS_PERCENT = 35
+
+// Reads a results CSV (Student ID, Name, subjects…, Total, Percentage, Grade) into summary numbers: how many
+// students, how many passed (grade not F, or percentage at least the pass mark) and the average percentage.
+function summariseResultsCsv(text) {
+  const rows = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter((l) => l.trim())
+  if (rows.length < 2) return null
+  const split = (line) => line.split(',').map((c) => c.trim().replace(/^"|"$/g, ''))
+  const header = split(rows[0]).map((h) => h.toLowerCase())
+  const pctAt = header.findIndex((h) => h.includes('percent') || h === '%')
+  const gradeAt = header.findIndex((h) => h.includes('grade') || h.includes('result'))
+  const body = rows.slice(1).map(split)
+  const pcts = pctAt >= 0 ? body.map((r) => parseFloat(r[pctAt])).filter((n) => !Number.isNaN(n)) : []
+  const failed = body.filter((r) => {
+    const g = gradeAt >= 0 ? String(r[gradeAt] ?? '').toUpperCase() : ''
+    if (g) return g === 'F' || g.startsWith('FAIL') || g === 'AB' || g === 'ABSENT'
+    const p = pctAt >= 0 ? parseFloat(r[pctAt]) : NaN
+    return !Number.isNaN(p) && p < PASS_PERCENT
+  }).length
+  return {
+    totalStudents: body.length,
+    passed: body.length - failed,
+    averagePercentage: pcts.length ? Math.round((pcts.reduce((a, b) => a + b, 0) / pcts.length) * 10) / 10 : '',
+  }
 }
 
 export default function ExamsResultsPage({ defaultTab = 'exams' }) {
@@ -258,52 +288,82 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
     setResultModalOpen(true)
   }
 
+  // "Upload" on a row: enter (or read from a CSV) how the class did.
   const openUploadResult = (exam) => {
+    if (!exam) { toast.error('That exam no longer exists.'); return }
     const existingResult = getResultByExamId(exam.id)
     setEditingResult(existingResult || null)
     setResultForm({
       examId: exam.id,
       status: existingResult?.status || 'pending',
       fileName: existingResult?.fileName || '',
+      totalStudents: existingResult?.totalStudents || exam.totalStudents || '',
+      // A pending result has placeholder zeros: start those boxes empty so typing doesn't give "0150".
+      passed: existingResult && existingResult.status !== 'pending' ? existingResult.passed ?? '' : '',
+      averagePercentage: existingResult && existingResult.status !== 'pending' ? existingResult.averagePercentage ?? '' : '',
     })
     setSelectedFile(null)
     setResultModalOpen(true)
   }
 
-  const handleResultSubmit = (e) => {
-    e.preventDefault()
+  const [viewingResult, setViewingResult] = useState(null)
+  const [publishingResult, setPublishingResult] = useState(null)
+
+  // "Publish" on a row: one confirm, then students of that branch and semester are notified.
+  const publishResult = (row) => {
+    results.update(row.id, { status: 'published', publishedAt: new Date().toISOString() })
+    bump()
+    setPublishingResult(null)
+    toast.success(`${row.branch} semester ${row.semester} students were notified.`, { title: 'Results published' })
+  }
+
+  const handleResultSubmit = (e, publishNow = false) => {
+    e?.preventDefault?.()
     // The server files a result under its exam's branch and semester (that decides which students are told).
     const exam = getExamById(resultForm.examId)
     if (!exam) { toast.error('Choose the exam these results are for.'); return }
+    const total = Number(resultForm.totalStudents)
+    const passed = Number(resultForm.passed)
+    if (!total || total < 1) { toast.error('Enter how many students took the exam.'); return }
+    if (resultForm.passed === '' || passed < 0 || passed > total) { toast.error('Passed must be between 0 and the number of students.'); return }
+    const avg = resultForm.averagePercentage === '' ? null : Number(resultForm.averagePercentage)
+    if (avg !== null && (avg < 0 || avg > 100)) { toast.error('Average must be between 0 and 100.'); return }
+
+    const status = publishNow ? 'published' : 'uploaded'
     const payload = {
-      ...resultForm,
+      examId: exam.id,
       university: uniId,
       branch: exam.branch,
       semester: exam.semester,
       examTitle: exam.title,
-      fileName: selectedFile?.name || resultForm.fileName,
+      totalStudents: total,
+      passed,
+      failed: total - passed,
+      ...(avg !== null && { averagePercentage: avg }),
+      fileName: selectedFile?.name || resultForm.fileName || '',
+      status,
+      uploadedAt: new Date().toISOString(),
+      ...(publishNow && { publishedAt: new Date().toISOString() }),
     }
-    if (editingResult) {
-      results.update(editingResult.id, payload)
-      toast.success('Result updated.', { title: 'Saved' })
-    } else {
-      results.add({
-        id: `result-${Date.now()}`,
-        ...payload,
-        uploadedBy: admin?.id || 'admin-001',
-        uploadedAt: new Date().toISOString(),
-      })
-      toast.success('Result uploaded.', { title: 'Saved' })
-    }
+    if (editingResult) results.update(editingResult.id, payload)
+    else results.add({ id: `result-${Date.now()}`, ...payload, uploadedBy: admin?.id })
+    toast.success(publishNow ? `${exam.branch} semester ${exam.semester} students were notified.` : 'Saved. Publish when you’re ready.', { title: publishNow ? 'Results published' : 'Results saved' })
     bump()
     setResultModalOpen(false)
   }
 
-  const handleFileChange = (e) => {
+  // A results CSV fills in the numbers; the admin can still correct them before saving.
+  const handleFileChange = async (e) => {
     const file = e.target.files[0]
-    if (file) {
-      setSelectedFile(file)
-      setResultForm({ ...resultForm, fileName: file.name })
+    if (!file) return
+    setSelectedFile(file)
+    const summary = /\.csv$/i.test(file.name) ? summariseResultsCsv(await file.text()) : null
+    if (summary) {
+      setResultForm((f) => ({ ...f, fileName: file.name, ...summary }))
+      toast.success(`Read ${summary.totalStudents} students from ${file.name}.`, { title: 'CSV read' })
+    } else {
+      setResultForm((f) => ({ ...f, fileName: file.name }))
+      if (!/\.csv$/i.test(file.name)) toast.info('Only CSV files can be read automatically. Enter the numbers below.')
     }
   }
 
@@ -437,13 +497,13 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
             renderRowActions={(row) => (
               <div className="flex items-center justify-end gap-1">
                 {row.status === 'uploaded' && (
-                  <AdminButton variant="secondary" size="sm" onClick={() => openUploadResult(getExamById(row.examId))}>
+                  <AdminButton variant="secondary" size="sm" onClick={() => setPublishingResult(row)}>
                     <CheckCircle className="w-4 h-4" />
                     Publish
                   </AdminButton>
                 )}
                 {row.status === 'published' && (
-                  <AdminButton variant="secondary" size="sm" onClick={() => openUploadResult(getExamById(row.examId))}>
+                  <AdminButton variant="secondary" size="sm" onClick={() => setViewingResult(row)}>
                     <Eye className="w-4 h-4" />
                     View
                   </AdminButton>
@@ -548,7 +608,7 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
       <AdminModal
         isOpen={resultModalOpen}
         onClose={() => setResultModalOpen(false)}
-        title={editingResult ? 'Edit Result' : 'Upload Results'}
+        title={editingResult ? 'Enter results' : 'Publish results'}
         size="lg"
       >
         <form onSubmit={handleResultSubmit} className="space-y-4">
@@ -565,30 +625,70 @@ export default function ExamsResultsPage({ defaultTab = 'exams' }) {
             />
           )}
           <div className="admin-form-group">
-            <label className="admin-label">Results CSV File</label>
-            <input
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={handleFileChange}
-              className="admin-input"
-              required={!editingResult}
-            />
-            <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>Upload CSV with columns: Student ID, Name, Subject Codes..., Total, Percentage, Grade</p>
-            {selectedFile && <p className="text-sm mt-1" style={{ color: tokens.accent }}>Selected: {selectedFile.name}</p>}
-            {editingResult?.fileName && !selectedFile && <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>Current: {editingResult.fileName}</p>}
+            <label className="admin-label">Results sheet (optional)</label>
+            <input type="file" accept=".csv,.xlsx,.xls" onChange={handleFileChange} className="admin-input" />
+            <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>Attach a CSV with Percentage and/or Grade columns and the numbers below fill in by themselves. Grade F, Fail or Absent counts as failed; without grades, under {PASS_PERCENT}% does.</p>
+            {(selectedFile?.name || resultForm.fileName) && <p className="text-sm mt-1" style={{ color: tokens.inkSoft }}>File: {selectedFile?.name || resultForm.fileName}</p>}
           </div>
-          <AdminSelect
-            label="Status"
-            options={resultStatusOptions}
-            value={resultForm.status}
-            onChange={(e) => setResultForm({...resultForm, status: e.target.value})}
-          />
+          <div className="grid grid-cols-3 gap-3">
+            <AdminInput label="Students" type="number" min={1} value={resultForm.totalStudents} onChange={(e) => setResultForm({ ...resultForm, totalStudents: e.target.value })} required />
+            <AdminInput label="Passed" type="number" min={0} value={resultForm.passed} onChange={(e) => setResultForm({ ...resultForm, passed: e.target.value })} required />
+            <AdminInput label="Average %" type="number" min={0} max={100} step="0.1" value={resultForm.averagePercentage} onChange={(e) => setResultForm({ ...resultForm, averagePercentage: e.target.value })} />
+          </div>
+          {resultForm.totalStudents && resultForm.passed !== '' && Number(resultForm.passed) <= Number(resultForm.totalStudents) ? (
+            <p className="text-sm" style={{ color: tokens.inkSoft }}>
+              {Number(resultForm.totalStudents) - Number(resultForm.passed)} failed · {Math.round((Number(resultForm.passed) / Number(resultForm.totalStudents)) * 1000) / 10}% pass rate
+            </p>
+          ) : null}
           <div className="admin-modal-footer">
             <AdminButton variant="ghost" type="button" onClick={() => setResultModalOpen(false)}>Cancel</AdminButton>
-            <AdminButton variant="primary" type="submit">{editingResult ? 'Update' : 'Upload'}</AdminButton>
+            <AdminButton variant="secondary" type="submit">Save</AdminButton>
+            <AdminButton variant="primary" type="button" onClick={() => handleResultSubmit(null, true)}>Save &amp; publish</AdminButton>
           </div>
         </form>
       </AdminModal>
+
+      {/* Result summary (View) */}
+      <AdminModal isOpen={!!viewingResult} onClose={() => setViewingResult(null)} title={viewingResult ? (getExamById(viewingResult.examId)?.title || viewingResult.examTitle || 'Result') : ''} size="md">
+        {viewingResult && (() => {
+          const r = viewingResult
+          const total = r.totalStudents || 0
+          const rate = total ? Math.round(((r.passed || 0) / total) * 1000) / 10 : 0
+          const rows = [
+            ['Branch · Semester', `${r.branch} · ${r.semester}`],
+            ['Students', total],
+            ['Passed', r.passed ?? 0],
+            ['Failed', r.failed ?? (total - (r.passed || 0))],
+            ['Pass rate', `${rate}%`],
+            ['Average', r.averagePercentage != null ? `${r.averagePercentage}%` : '—'],
+            ['Published', r.publishedAt ? new Date(r.publishedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—'],
+            ['Results sheet', r.fileName || '—'],
+          ]
+          return (
+            <div className="space-y-1">
+              {rows.map(([k, v]) => (
+                <div key={k} className="flex justify-between py-2 text-sm" style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
+                  <span style={{ color: tokens.inkSoft }}>{k}</span><span className="font-medium" style={{ color: tokens.ink }}>{v}</span>
+                </div>
+              ))}
+              <div className="admin-modal-footer" style={{ paddingLeft: 0, paddingRight: 0 }}>
+                <AdminButton variant="secondary" onClick={() => { setViewingResult(null); openUploadResult(getExamById(r.examId)) }}>Edit numbers</AdminButton>
+                <AdminButton variant="primary" onClick={() => setViewingResult(null)}>Done</AdminButton>
+              </div>
+            </div>
+          )
+        })()}
+      </AdminModal>
+
+      {/* Publish confirm */}
+      <AdminConfirmDialog
+        isOpen={!!publishingResult}
+        onClose={() => setPublishingResult(null)}
+        onConfirm={() => publishResult(publishingResult)}
+        title="Publish these results?"
+        message={publishingResult ? `Every ${publishingResult.branch} semester ${publishingResult.semester} student gets a notification that their results are out.` : ''}
+        confirmText="Publish"
+      />
 
       {/* Delete Confirm Dialog */}
       <AdminConfirmDialog

@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, Download, Search, ShieldCheck, Upload, UserCheck, UserX, Users } from 'lucide-react'
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Download, Inbox, Search, ShieldCheck, Upload, UserCheck, UserPlus, UserX, Users, X } from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import ImportStudentsModal from '../../components/admin/ImportStudentsModal'
 import { request } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/feedback/Toast'
 import { PageHeader, SectionCard, StatusPill, TagChip } from '../../components/admin/PageChrome'
-import { Button, ConfirmDialog, Empty, ErrorState, Loading, NoAccess, Select, TextInput, td, th, timeAgo } from '../../components/admin/kit'
+import { Button, ConfirmDialog, Empty, ErrorState, Field, Loading, Modal, NoAccess, Select, TextArea, TextInput, td, th, timeAgo } from '../../components/admin/kit'
 import { useAdminApi } from '../../hooks/useAdminApi'
 import { tokens, radius } from '../../theme'
 
@@ -25,6 +26,11 @@ export default function StudentListPage() {
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
   const allowed = hasPermission('users')
+  const [params_, setParams] = useSearchParams()
+  const tab = params_.get('tab') === 'requests' ? 'requests' : 'students'
+  // Polled so a new request shows up without a reload.
+  const pending = useAdminApi(allowed ? '/admin/join-requests?status=pending' : null, { pollMs: 30000 })
+  const pendingCount = pending.data?.length ?? 0
 
   // Wait for a pause in typing before asking the server.
   useEffect(() => {
@@ -84,11 +90,22 @@ export default function StudentListPage() {
     <div className="h-full flex flex-col min-h-0">
       <PageHeader
         title="Students"
-        subtitle={summary ? `${summary.total} registered · ${summary.active} active` : 'Everyone who has signed up with a college email'}
+        subtitle={summary ? `${summary.total} registered · ${summary.active} active${pendingCount ? ` · ${pendingCount} waiting to join` : ''}` : 'Verified students of your college'}
         actions={<><Button variant="secondary" onClick={() => setImporting(true)}><Upload className="w-4 h-4" aria-hidden /> Import CSV</Button><Button variant="secondary" onClick={exportCsv} loading={exporting}><Download className="w-4 h-4" aria-hidden /> Export CSV</Button></>}
       />
 
       <div className="flex-1 min-h-0 overflow-y-auto admin-scrollbar-dark px-6 lg:px-8 py-6 max-w-6xl space-y-5">
+        <div className="admin-tabs" role="tablist">
+          <button type="button" role="tab" aria-selected={tab === 'students'} onClick={() => setParams({})} className={`admin-tab ${tab === 'students' ? 'admin-tab-active' : ''}`}>
+            <Users className="w-4 h-4" aria-hidden /> Students
+          </button>
+          <button type="button" role="tab" aria-selected={tab === 'requests'} onClick={() => setParams({ tab: 'requests' })} className={`admin-tab ${tab === 'requests' ? 'admin-tab-active' : ''}`}>
+            <UserPlus className="w-4 h-4" aria-hidden /> Join requests
+            {pendingCount > 0 && <span className="px-1.5 py-px text-[10px] font-semibold" style={{ background: tokens.accent, color: tokens.accentInk, borderRadius: radius.chip }}>{pendingCount}</span>}
+          </button>
+        </div>
+
+        {tab === 'requests' ? <JoinRequests pending={pending} onDecided={() => { pending.reload(); roster.reload() }} /> : (<>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Tile label="Registered" value={summary?.total} icon={Users} color={tokens.accent} bg={tokens.violetSoft} />
           <Tile label="Active" value={summary?.active} icon={UserCheck} color={tokens.green} bg={tokens.greenSoft} />
@@ -154,6 +171,7 @@ export default function StudentListPage() {
             )}
           </SectionCard>
         )}
+        </>)}
       </div>
 
       {importing && <ImportStudentsModal onClose={() => setImporting(false)} onImported={roster.reload} />}
@@ -179,6 +197,100 @@ function Tile({ label, value, icon: Icon, color, bg }) {
       <div className="w-9 h-9 flex items-center justify-center mb-2" style={{ background: bg, borderRadius: radius.chip }}><Icon className="w-4 h-4" style={{ color }} aria-hidden /></div>
       <div className="text-2xl font-semibold tracking-tight" style={{ color: tokens.ink, fontVariantNumeric: 'tabular-nums' }}>{value ?? '—'}</div>
       <div className="text-xs mt-0.5" style={{ color: tokens.inkSoft }}>{label}</div>
+    </div>
+  )
+}
+
+// People who signed up with a personal email and asked to join this college. The admin checks the roll number
+// against the college's records, then approves (they become a verified student at once) or rejects with a reason.
+function JoinRequests({ pending, onDecided }) {
+  const toast = useToast()
+  const [view, setView] = useState('pending')
+  const history = useAdminApi(view === 'pending' ? null : `/admin/join-requests?status=${view}`)
+  const list = view === 'pending' ? pending : history
+  const [rejecting, setRejecting] = useState(null)
+  const [reason, setReason] = useState('')
+  const [busyId, setBusyId] = useState(null)
+
+  const decide = async (r, action, body) => {
+    setBusyId(r.id)
+    try {
+      await request(`/admin/join-requests/${r.id}/${action}`, { method: 'POST', body })
+      toast.success(action === 'approve' ? `${r.name} is now a verified student.` : `${r.name} was told why.`, { title: action === 'approve' ? 'Approved' : 'Rejected' })
+      setRejecting(null); setReason('')
+      onDecided()
+      if (view !== 'pending') history.reload()
+    } catch (err) {
+      toast.error(err.message, { title: 'Could not update' })
+    }
+    setBusyId(null)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        {[['pending', 'Waiting'], ['approved', 'Approved'], ['rejected', 'Rejected']].map(([v, label]) => (
+          <button key={v} type="button" onClick={() => setView(v)} className="px-3 h-8 text-[13px] font-medium smooth"
+            style={{ border: `1px solid ${view === v ? tokens.violet : tokens.hairline}`, color: view === v ? tokens.ink : tokens.inkSoft, background: view === v ? tokens.sunken : 'transparent', borderRadius: radius.button }}>
+            {label}
+          </button>
+        ))}
+        <span className="text-xs ml-2" style={{ color: tokens.inkFaint }}>Check each roll number against your records before approving.</span>
+      </div>
+
+      {list.loading && !list.data ? <Loading /> : list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : (
+        <SectionCard padded={false}>
+          {(list.data ?? []).length === 0 ? (
+            <Empty icon={Inbox} title={view === 'pending' ? 'No one is waiting' : `No ${view} requests`} body={view === 'pending' ? 'Students who sign up with a personal email and ask to join your college appear here.' : 'Decided requests are listed here.'} />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+                <thead><tr style={{ borderBottom: `1px solid ${tokens.hairline}`, color: tokens.inkFaint }}>
+                  <th className={th}>Person</th><th className={th}>Roll no.</th><th className={th}>Branch</th><th className={th}>Semester</th><th className={th}>{view === 'pending' ? 'Asked' : 'Decided'}</th><th className={th}><span className="sr-only">Actions</span></th>
+                </tr></thead>
+                <tbody>
+                  {list.data.map((r) => (
+                    <tr key={r.id} style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
+                      <td className={td}>
+                        <div className="font-medium" style={{ color: tokens.ink }}>{r.name}</div>
+                        <div className="text-[11px]" style={{ color: tokens.inkFaint }}>{r.email}</div>
+                        {r.note ? <div className="text-xs mt-1" style={{ color: tokens.inkSoft }}>“{r.note}”</div> : null}
+                        {r.reason ? <div className="text-xs mt-1" style={{ color: tokens.inkSoft }}>Reason: {r.reason}</div> : null}
+                      </td>
+                      <td className={td}>
+                        <span className="font-medium" style={{ color: tokens.ink, fontVariantNumeric: 'tabular-nums' }}>{r.rollNumber}</span>
+                        {r.warning ? <div className="flex items-center gap-1 text-[11px] mt-1" style={{ color: tokens.yellowText }}><AlertTriangle className="w-3 h-3" aria-hidden />{r.warning}</div> : null}
+                      </td>
+                      <td className={td}><TagChip>{r.branch}</TagChip></td>
+                      <td className={td} style={{ color: tokens.inkSoft }}>Sem {r.semester} · Year {r.year}</td>
+                      <td className={td} style={{ color: tokens.inkSoft }}>{timeAgo(view === 'pending' ? r.createdAt : r.decidedAt)}</td>
+                      <td className={`${td} text-right whitespace-nowrap`}>
+                        {view === 'pending' ? (
+                          <div className="inline-flex gap-2">
+                            <Button variant="secondary" onClick={() => setRejecting(r)} disabled={busyId === r.id}><X className="w-4 h-4" aria-hidden /> Reject</Button>
+                            <Button onClick={() => decide(r, 'approve')} loading={busyId === r.id}><Check className="w-4 h-4" aria-hidden /> Approve</Button>
+                          </div>
+                        ) : <StatusPill kind={view === 'approved' ? 'approved' : 'closed'}>{view}</StatusPill>}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </SectionCard>
+      )}
+
+      {rejecting && (
+        <Modal title={`Reject ${rejecting.name}?`} onClose={() => setRejecting(null)} footer={<>
+          <Button variant="secondary" onClick={() => setRejecting(null)}>Cancel</Button>
+          <Button variant="danger" onClick={() => decide(rejecting, 'reject', { reason })} loading={busyId === rejecting.id}>Reject</Button>
+        </>}>
+          <Field label="Reason (shown to them)" htmlFor="reject-reason" hint="For example: roll number not found. They can fix it and ask again.">
+            <TextArea id="reject-reason" rows={3} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} placeholder="Roll number not on our list." />
+          </Field>
+        </Modal>
+      )}
     </div>
   )
 }

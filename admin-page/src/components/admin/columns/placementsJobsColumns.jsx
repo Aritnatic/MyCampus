@@ -1,7 +1,7 @@
 import { createColumn } from '../AdminTable'
 import { AdminBadge, AdminStatusDot } from '../AdminBadge'
 import { formatDate, formatNumber, truncate } from '../../../utils/format'
-import { Building2, TrendingUp, TrendingDown, CheckCircle, CheckCircle2, CircleDashed, ClipboardList, XCircle } from 'lucide-react'
+import { Building2, TrendingUp, TrendingDown, CheckCircle, CheckCircle2, CircleDashed, ClipboardList, XCircle , Hourglass } from 'lucide-react'
 
 // Job type options for badge rendering
 export const JOB_TYPE_OPTIONS = [
@@ -56,8 +56,9 @@ export function createJobColumns({ onRowAction, actionsWidth = '120px' } = {}) {
       header: 'Status',
       width: '100px',
       sortable: true,
-      render: (val) => (
-        <AdminBadge status={val} size="sm" />
+      // An open job whose deadline has gone by isn't taking applications any more: say so.
+      render: (val, row) => (
+        <AdminBadge status={jobExpired(row) ? 'expired' : val} size="sm" />
       ),
     }),
     createColumn({
@@ -142,9 +143,17 @@ export function createJobColumns({ onRowAction, actionsWidth = '120px' } = {}) {
 }
 
 // Quick filter configurations for jobs
+// Marked open but its application deadline (a date, lasting through that day) is already over.
+export function jobExpired(j) {
+  if (j.status !== 'open' || !j.deadline) return false
+  const d = String(j.deadline).slice(0, 10)
+  return new Date(`${d}T23:59:59`) < new Date()
+}
+
 export const jobQuickFilters = [
   { value: 'all', label: 'All', count: null },
   { value: 'open', label: 'Open', count: null },
+  { value: 'expired', label: 'Deadline passed', count: null },
   { value: 'closed', label: 'Closed', count: null },
   { value: 'draft', label: 'Draft', count: null },
   { value: 'on-hold', label: 'On Hold', count: null },
@@ -180,7 +189,8 @@ export const jobFilters = [
 // Stats bar configurations for jobs
 export function createJobStats(data) {
   const total = data.length
-  const open = data.filter(j => j.status === 'open').length
+  const open = data.filter(j => j.status === 'open' && !jobExpired(j)).length
+  const expired = data.filter(jobExpired).length
   const closed = data.filter(j => j.status === 'closed').length
   const draft = data.filter(j => j.status === 'draft').length
   const totalOpenings = data.reduce((sum, j) => sum + (j.openings || 0), 0)
@@ -190,6 +200,7 @@ export function createJobStats(data) {
     { key: 'total', label: 'Total Jobs', value: total, trend: 0, icon: () => <ClipboardList className="w-5 h-5 text-primary-600" /> },
     { key: 'open', label: 'Open', value: open, trend: 0, icon: () => <CheckCircle2 className="w-5 h-5 text-success-600" />, iconBg: 'bg-success-100' },
     { key: 'closed', label: 'Closed', value: closed, trend: 0, icon: () => <XCircle className="w-5 h-5 text-danger-600" />, iconBg: 'bg-danger-100' },
+    { key: 'expired', label: 'Deadline passed', value: expired, trend: 0, icon: () => <Hourglass className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'draft', label: 'Draft', value: draft, trend: 0, icon: () => <CircleDashed className="w-5 h-5 text-warning-600" />, iconBg: 'bg-warning-100' },
     { key: 'openings', label: 'Total Openings', value: totalOpenings, trend: 0, icon: () => <TrendingUp className="w-5 h-5 text-info-600" />, iconBg: 'bg-info-100' },
   ]

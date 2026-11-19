@@ -120,9 +120,9 @@ export const KINDS = {
     detail: (j) => ({
       title: j.title,
       subtitle: `${j.company} · ${j.location}`,
-      badge: j.type,
+      badge: j.acceptingApplications === false || j.expired ? 'Applications closed' : j.type,
       body: j.description,
-      facts: [['Positions', j.positions], ['Applicants', j.applicants], ['Deadline', j.deadline]],
+      facts: [['Positions', j.positions], ['Applicants', j.applicants], ['Deadline', j.expired ? `${j.deadline} (passed)` : j.deadline]],
       groups: [
         { title: 'Pay', items: [j.stipend ?? j.salary].filter(Boolean), list: true },
         { title: 'Requirements', items: j.requirements, list: true },

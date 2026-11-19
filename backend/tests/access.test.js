@@ -21,12 +21,11 @@ describe('campus layer is private to verified members', () => {
     assert.equal((await call(`/content/notices/${id}`, { token: await as('individual') })).status, 404)
   })
 
-  it('individuals never see campus content (notices, exams, faculty, map, alerts)', async () => {
+  it('individuals never see campus content (notices, exams, faculty, alerts)', async () => {
     const token = await as('individual')
     for (const path of ['/content/notices', '/content/exams', '/content/faculty', '/content/grades']) {
       assert.deepEqual((await call(path, { token })).body, [], path)
     }
-    assert.equal((await call('/campus/map', { token })).status, 403)
     assert.equal((await call('/alerts', { token })).status, 403)
   })
 

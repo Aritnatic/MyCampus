@@ -30,6 +30,7 @@ import {
   jobFilters,
   jobQuickFilters,
   createJobStats,
+  jobExpired,
   initialJobForm,
   jobFormSections,
   mapJobToForm,
@@ -77,7 +78,8 @@ export default function PlacementsPage({ defaultTab = 'jobs' }) {
     return jobsData.filter(j => {
       const matchesSearch = j.title.toLowerCase().includes(jobSearch.toLowerCase()) ||
         j.company.toLowerCase().includes(jobSearch.toLowerCase())
-      const matchesStatus = jobFiltersState.status === 'all' || !jobFiltersState.status || j.status === jobFiltersState.status
+      const st = jobFiltersState.status
+      const matchesStatus = st === 'all' || !st ? true : st === 'expired' ? jobExpired(j) : st === 'open' ? j.status === 'open' && !jobExpired(j) : j.status === st
       const matchesType = jobFiltersState.type === 'all' || !jobFiltersState.type || j.type === jobFiltersState.type
       const matchesBranch = !jobFiltersState.branch || jobFiltersState.branch.length === 0 || jobFiltersState.branch.some(b => j.branch.includes(b))
       return matchesSearch && matchesStatus && matchesType && matchesBranch

@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 96" width="400" height="96">
+  <path d="M22 87V61a13 13 0 0 1 26 0M48 87V40a13 13 0 0 1 26 0V87" transform="translate(0 -5.5)" fill="none" stroke="#A78BFA" stroke-width="14" stroke-linecap="butt"/>
+  <text x="100" y="66" font-family="'Helvetica Neue', Helvetica, Inter, Arial, sans-serif" font-size="52" font-weight="700" letter-spacing="-1.5" fill="#F5F5F5">mycampus</text>
+</svg>

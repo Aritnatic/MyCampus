@@ -44,17 +44,18 @@ function RootStack() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="alerts" options={detail('Safety alerts')} />
             <Stack.Screen name="notices" options={detail('Notices')} />
+            <Stack.Screen name="events" options={detail('Events')} />
             <Stack.Screen name="search" options={{ ...detail('Search'), headerBackTitle: 'Home' }} />
             <Stack.Screen name="project-new" options={detail('Start a project')} />
             <Stack.Screen name="change-password" options={detail('Change password')} />
             <Stack.Screen name="feedback" options={detail('Send feedback')} />
+            <Stack.Screen name="join" options={detail('Join your college')} />
             <Stack.Screen name="profile-edit" options={detail('Edit profile')} />
             <Stack.Screen name="exams" options={detail('Exams & results')} />
             <Stack.Screen name="notes" options={detail('Study notes')} />
             <Stack.Screen name="note-new" options={detail('Share notes')} />
             <Stack.Screen name="notice/[id]" options={detail('Notice')} />
             <Stack.Screen name="event/[id]" options={detail('Event')} />
-            <Stack.Screen name="map" options={detail('Campus map')} />
             <Stack.Screen name="career" options={detail('Career paths')} />
             <Stack.Screen name="career/[id]" options={detail('Career path')} />
             <Stack.Screen name="my-events" options={detail('My events')} />

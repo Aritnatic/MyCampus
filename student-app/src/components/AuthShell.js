@@ -1,4 +1,5 @@
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { BrandMark } from './BrandMark'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { tokens as t, radius, themed } from '../theme'
 
@@ -8,7 +9,7 @@ export function AuthShell({ title, subtitle, children, footer }) {
     <SafeAreaView style={styles.root}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <View style={styles.logo} accessibilityElementsHidden><Text style={styles.logoText}>M</Text></View>
+          <View style={styles.logo} accessibilityElementsHidden><BrandMark size={30} /></View>
           <Text accessibilityRole="header" style={styles.title}>{title}</Text>
           {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
           <View style={{ gap: 14, marginTop: 20 }}>{children}</View>
@@ -33,7 +34,6 @@ const styles = themed(() => StyleSheet.create({
   root: { flex: 1, backgroundColor: t.canvas },
   scroll: { flexGrow: 1, justifyContent: 'center', padding: 24 },
   logo: { width: 52, height: 52, borderRadius: radius.container, backgroundColor: t.violet, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
-  logoText: { color: '#fff', fontSize: 26, fontWeight: '800' },
   title: { color: t.ink, fontSize: 28, fontWeight: '800' },
   sub: { color: t.inkSoft, fontSize: 15, lineHeight: 22, marginTop: 6 },
   footer: { marginTop: 22, alignItems: 'center', gap: 10 },

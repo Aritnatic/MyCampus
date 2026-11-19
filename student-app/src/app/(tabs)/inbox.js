@@ -18,6 +18,8 @@ const ICONS = {
 // Where tapping a notification should take you. Types without a screen yet just get marked read.
 function routeFor(n) {
   const d = n.data ?? {}
+  if (n.type === 'join_approved') return '/'
+  if (n.type === 'join_rejected') return '/join'
   if (n.type === 'notice' && d.noticeId) return `/notice/${d.noticeId}`
   if ((n.type === 'event' || n.type === 'event_seat') && d.eventId) return `/event/${d.eventId}`
   if (n.type === 'exam' || n.type === 'result') return '/exams'

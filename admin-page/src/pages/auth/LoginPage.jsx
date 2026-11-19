@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import BrandMark from '../../components/BrandMark'
 import { Lock, Mail, Eye, EyeOff, Shield, AlertCircle, Loader2, User, GraduationCap } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 
@@ -111,7 +112,7 @@ export function LoginPage() {
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center">
-              <Shield className="w-7 h-7" />
+              <BrandMark className="w-7 h-7" />
             </div>
             <div>
               <h1 className="text-xl font-bold">MyCampus</h1>
@@ -139,7 +140,7 @@ export function LoginPage() {
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
             <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center">
-              <Shield className="w-7 h-7 text-white" />
+              <BrandMark className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-admin-900">MyCampus</h1>

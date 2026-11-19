@@ -28,7 +28,7 @@ A university owns a list of **email domains** (`cvrp.edu.in`, `students.cvrp.edu
 
 ## Access rules (`src/access.js`)
 
-- **Campus layer** — notices, exams, results, grades, faculty, campus map, safety alerts: verified members of that university only. Hidden items return 404, not 403.
+- **Campus layer** — notices, exams, results, grades, faculty, safety alerts: verified members of that university only. Hidden items return 404, not 403.
 - **Shared** — events, notes, projects, research: own campus, or anything marked `visibility: "cross-university"`.
 - **Open** — startups, open jobs, career paths: any signed-in user.
 - **People** — your own campus; other campuses only if the student is open to mentoring. No emails are ever exposed.
@@ -54,9 +54,9 @@ A university owns a list of **email domains** (`cvrp.edu.in`, `students.cvrp.edu
 
 **Feedback** — `POST /feedback` (category `bug|idea|other`, message; 10/day per person); admins: `GET /admin/feedback?status=`, `PATCH /admin/feedback/:id` (`new|seen|done`)
 
-**Campus map & career** — `GET /campus/map|route?from=&to=|search?q=`, `GET /career/paths[/:id]` (private skill-gap + matching jobs)
+**Career** — `GET /career/paths[/:id]` (private skill-gap + matching jobs)
 
-**Admin** (scoped to the admin's own university; permission per module, superadmin has all) — `GET|POST|PUT|DELETE /admin/{notices,events,exams,results,jobs,faculty,research}`, `GET /admin/events/:id/registrations`, `GET /admin/collab` + accept/decline (research interest), `GET|POST|PATCH /admin/users`, `GET /admin/students`, `GET /admin/stats`, `GET|PUT /admin/domains`, `GET /admin/audit`, `POST /admin/notify`, `PUT /admin/campus-map`
+**Admin** (scoped to the admin's own university; permission per module, superadmin has all) — `GET|POST|PUT|DELETE /admin/{notices,events,exams,results,jobs,faculty,research}`, `GET /admin/events/:id/registrations`, `GET /admin/collab` + accept/decline (research interest), `GET|POST|PATCH /admin/users`, `GET /admin/students`, `GET /admin/stats`, `GET|PUT /admin/domains`, `GET /admin/audit`, `POST /admin/notify`, `GET /admin/join-requests` + approve/reject
 
 ## Storage
 

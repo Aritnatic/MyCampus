@@ -32,7 +32,7 @@ export default function Register() {
   return (
     <AuthShell
       title="Create your account"
-      subtitle="Use your official college email to unlock your campus. Other emails can still explore projects, research and startups."
+      subtitle="Sign up with your college email, or any email if your college doesn’t give you one. Then join your college with your roll number."
       footer={<Text style={{ color: t.inkSoft }}>Already have an account? <Link href="/login" style={{ color: t.violetText, fontWeight: '700' }}>Sign in</Link></Text>}
     >
       <Field label="Full name" value={form.name} onChangeText={set('name')} placeholder="Aritra Das" autoCapitalize="words" textContentType="name" error={errors.name} />

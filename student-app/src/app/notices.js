@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { Async, Card, Chip, formatDate } from '../components/ui'
+import { Async, Card, Chip, Segmented, formatDate } from '../components/ui'
+import { isToday, noticeEnded } from '../when'
 import { useApi } from '../hooks/useApi'
 import { tokens as t, themed } from '../theme'
 
@@ -11,14 +13,23 @@ const order = (a, b) => Number(b.pinned) - Number(a.pinned) || new Date(b.publis
 export default function Notices() {
   const router = useRouter()
   const { data, loading, error, refreshing, reload } = useApi('/content/notices')
+  const [when, setWhen] = useState('current')
+  const all = data ?? []
+  const groups = {
+    today: all.filter((n) => isToday(n.publishedAt)),
+    current: all.filter((n) => !noticeEnded(n)),
+    older: all.filter(noticeEnded),
+  }
+  const empty = { today: ['Nothing new today', 'Notices published today show up here.'], current: ['No current notices', 'Notices from your college will appear here.'], older: ['No older notices', 'Notices move here once they expire.'] }[when]
   return (
     <FlatList
-      data={[...(data ?? [])].sort(order)}
+      data={[...groups[when]].sort(order)}
+      ListHeaderComponent={<Segmented value={when} onChange={setWhen} options={[{ value: 'today', label: `Today${groups.today.length ? ` · ${groups.today.length}` : ''}` }, { value: 'current', label: 'Current' }, { value: 'older', label: 'Older' }]} />}
       keyExtractor={(n) => n.id}
       contentContainerStyle={styles.list}
       onRefresh={reload}
       refreshing={refreshing}
-      ListEmptyComponent={<Async loading={loading} error={error} onRetry={reload} emptyIcon="newspaper-outline" emptyTitle="No notices yet" empty="Notices from your college will appear here." />}
+      ListEmptyComponent={<Async loading={loading} error={error} onRetry={reload} emptyIcon="newspaper-outline" emptyTitle={empty[0]} empty={empty[1]} />}
       renderItem={({ item: n }) => (
         <Card onPress={() => router.push(`/notice/${n.id}`)}>
           <View style={styles.row}>
@@ -26,7 +37,7 @@ export default function Notices() {
             {n.pinned ? <Ionicons name="pin" size={14} color={t.violetText} /> : null}
           </View>
           <Text style={styles.title}>{n.title}</Text>
-          <Text style={styles.meta}>{formatDate(n.publishedAt)}</Text>
+          <Text style={styles.meta}>{formatDate(n.publishedAt)}{n.expiresAt ? (noticeEnded(n) ? ` · expired ${formatDate(n.expiresAt)}` : ` · until ${formatDate(n.expiresAt)}`) : ''}</Text>
         </Card>
       )}
     />

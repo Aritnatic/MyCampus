@@ -91,33 +91,6 @@ describe('collaboration matching', () => {
   })
 })
 
-describe('campus map', () => {
-  it('finds the shortest walking route between buildings and from landmarks', async () => {
-    const token = await as('aritra')
-    const route = await call('/campus/route?from=block-a&to=canteen', { token })
-    assert.equal(route.status, 200)
-    assert.equal(route.body.path[0], 'block-a')
-    assert.equal(route.body.path.at(-1), 'canteen')
-    assert.ok(route.body.distance > 0)
-    assert.equal((await call('/campus/route?from=fountain&to=library', { token })).status, 200)
-    assert.equal((await call('/campus/route?from=block-a&to=atlantis', { token })).status, 404)
-  })
-
-  it('keeps every landmark in open space, not inside a building', async () => {
-    const { buildings, landmarks } = (await call('/campus/map', { token: await as('aritra') })).body
-    for (const l of landmarks) {
-      const clash = buildings.find((b) => l.x >= b.x && l.x <= b.x + b.width && l.y >= b.y && l.y <= b.y + b.height)
-      assert.equal(clash, undefined, `${l.name} is inside ${clash?.name}`)
-    }
-  })
-
-  it('searches facilities and rejects other campuses', async () => {
-    const hits = await call('/campus/search?q=DSP', { token: await as('aritra') })
-    assert.ok(hits.body.some((h) => h.building?.id === 'block-b'))
-    assert.equal((await call('/campus/map', { token: await as('rahul') })).status, 404) // KIIT hasn't published one
-  })
-})
-
 describe('career guidance', () => {
   it('shows a private skill-gap for each path and jobs that ask for those skills', async () => {
     const token = await as('aritra')

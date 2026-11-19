@@ -182,6 +182,26 @@ const MIGRATIONS = [
   CREATE TRIGGER students_update AFTER UPDATE OF data, role, status, university, email_verified ON users
     BEGIN UPDATE change_marks SET n = n + 1 WHERE name = 'students'; END;
   `,
+  // 6 — requests to join a college. For colleges without student email addresses: someone signs up with any
+  // email (an "individual" account), asks to join with their roll number, and an admin approves or rejects.
+  `
+  CREATE TABLE join_requests (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    university TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending',
+    data TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    decided_at TEXT,
+    decided_by TEXT
+  );
+  CREATE UNIQUE INDEX join_one_open ON join_requests (user_id) WHERE status = 'pending';
+  CREATE INDEX join_uni ON join_requests (university, status, created_at DESC);
+  `,
+  // 7 — the campus map feature was removed; drop its stored maps.
+  `
+  DELETE FROM docs WHERE kind = 'campus_map';
+  `,
 ]
 
 const version = db.prepare('PRAGMA user_version').get().user_version

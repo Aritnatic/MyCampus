@@ -49,7 +49,7 @@ Problems found when viewing real output:
 4. [x] **Discover that works**: ranked natural-language search with kind intent, Connect / Ask to mentor / Ask to join, mentors-only filter, create a project. *(Creating a startup is API-only for now.)*
 5. [x] **Events**: RSVP with capacity and waitlist (auto-promotion), My events.
 6. [~] **Notes**: list, download, rate, delete verified. **Sharing form (file picker + upload) bundles for iOS/Android but could not be exercised here** — the OS file picker can't be driven from this environment; the upload API is covered by backend tests.
-7. [x] **Campus map**: SVG map, tap a building, facility search, walking route from any place.
+7. ~~Campus map~~ — removed (19 Nov 2026).
 8. [x] **Career**: paths, private skill gap, roadmap, matching jobs.
 
 **Done when:** every endpoint in `backend/README.md` that a student would use has a screen. ✅ *(2026-10-08; remaining gaps: startup creation, push on a real device, the notes upload form on a real device.)*
@@ -68,7 +68,7 @@ Problems found when viewing real output:
 ### Phase 4 — Pilot readiness
 - [ ] Hosting + domain + HTTPS · Postgres (or SQLite on a persistent disk with backups) · secrets management
 - [ ] Real mail provider (sign-up codes, resets) · Expo push credentials · EAS builds (TestFlight / Android internal)
-- [ ] Import real data: CVRP students (CSV), faculty, timetable, map
+- [ ] Import real data: CVRP students (CSV), faculty, timetable
 - [ ] Privacy policy + terms, data retention, a way to delete an account
 - [~] Monitoring (errors, uptime): logs + `/health` are ready to point an uptime monitor at; no error-tracking service wired. Daily backups with a tested restore: tested locally, rehearse on the host.
 - [x] **Feedback form** *(2026-10-12)*: Me → Send feedback in the app; admins triage it (New / Seen / Done) on a new Feedback page; included in "Download my data"; 10 per person per day.

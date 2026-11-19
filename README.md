@@ -33,7 +33,6 @@ Campus information today is scattered — spread across notices, WhatsApp groups
 - Mentor discovery (seniors and experienced people)
 - Collaboration matching (complementary skills for projects/research/startups)
 - Semantic search (natural-language search for opportunities)
-- **Interactive 2D campus map** (clickable buildings, roads, paths, with extruded depth)
 
 ### 2. Career, Research & Startup Growth
 - Hiring updates (which companies are recruiting)

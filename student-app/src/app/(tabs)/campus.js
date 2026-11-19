@@ -8,8 +8,8 @@ import { tokens as t, themed } from '../../theme'
 const ENTRIES = [
   { href: '/notices', icon: 'newspaper-outline', title: 'Notices', body: 'Announcements from your college', tone: 'blue' },
   { href: '/exams', icon: 'calendar-outline', title: 'Exams & results', body: 'Timetable and published results', tone: 'yellow' },
-  { href: '/map', icon: 'map-outline', title: 'Campus map', body: 'Buildings, labs and routes', tone: 'green' },
   { href: '/notes', icon: 'book-outline', title: 'Study notes', body: 'Shared notes by subject', tone: 'violet' },
+  { href: '/events', icon: 'calendar-number-outline', title: 'Events', body: 'Today, upcoming and past events', tone: 'green' },
   { href: '/my-events', icon: 'ticket-outline', title: 'My events', body: 'Events you’ve registered for', tone: 'green' },
   { href: '/career', icon: 'trail-sign-outline', title: 'Career paths', body: 'Skills to build for the work you want', tone: 'yellow' },
 ]

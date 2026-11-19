@@ -4,6 +4,7 @@ import { Linking, ScrollView, StyleSheet, Text, View } from 'react-native'
 import { request, SITE_URL } from '../../api'
 import { Button, PasswordSheet, Segmented, useToast } from '../../components/ui'
 import { Panel, ProfileHero, TagGroup } from '../../components/profile'
+import { JoinCollegeCard } from '../../components/JoinCollegeCard'
 import { useAuth } from '../../context/AuthContext'
 import { useTheme } from '../../context/ThemeContext'
 import { saveJson } from '../../files'
@@ -47,6 +48,8 @@ export default function Me() {
         <View style={styles.actionsRow}>
           <Button label="Edit profile" icon="create-outline" onPress={() => router.push('/profile-edit')} style={{ flex: 1 }} />
         </View>
+
+        <JoinCollegeCard />
 
         {gaps.length > 0 && (
           <Panel title="Finish your profile" icon="sparkles-outline" style={{ borderColor: t.violet }}>

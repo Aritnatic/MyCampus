@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { Async, Button, Segmented } from '../../../components/ui'
+import { jobClosed } from '../../../when'
 import { ListRow } from '../../../components/profile'
 import { useAuth } from '../../../context/AuthContext'
 import { useApi } from '../../../hooks/useApi'
@@ -30,7 +31,10 @@ export default function DiscoverList() {
     k ? `/discover/${kind}?scope=${kind === 'faculty' ? 'campus' : scope}&q=${encodeURIComponent(debounced)}${kind === 'people' && mentorsOnly ? '&mentors=1' : ''}` : null,
   )
   if (!k) return <Text style={styles.missing}>That category doesn’t exist.</Text>
-  const items = data ?? []
+  const [jobsWhen, setJobsWhen] = useState('open')
+  const fetched = data ?? []
+  // Jobs past their deadline (or closed by the college) move to "Closed" so the main list is only what you can still apply to.
+  const items = kind === 'jobs' ? fetched.filter(({ item }) => (jobsWhen === 'open') !== jobClosed(item)) : fetched
 
   return (
     <>
@@ -60,7 +64,10 @@ export default function DiscoverList() {
               </View>
             ) : null}
             {kind === 'projects' && user.role === 'student' ? <Button label="Start a project" icon="add-circle-outline" variant="secondary" compact onPress={() => router.push('/project-new')} /> : null}
-            {kind !== 'faculty' ? (
+            {kind === 'jobs' ? (
+              <Segmented value={jobsWhen} onChange={setJobsWhen} options={[{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }]} />
+            ) : null}
+            {kind !== 'faculty' && kind !== 'jobs' ? (
               <Segmented value={scope} onChange={setScope} options={[{ value: 'campus', label: 'My campus' }, { value: 'all', label: 'All universities' }]} />
             ) : null}
             {!loading && items.length > 0 ? <Text style={styles.count}>{items.length} {items.length === 1 ? 'result' : 'results'}</Text> : null}
@@ -79,7 +86,7 @@ export default function DiscoverList() {
               tone={k.tone}
               title={s.title}
               subtitle={s.subtitle}
-              blurb={score > 0 ? `${score} match${score > 1 ? 'es' : ''} with your skills · ${s.blurb ?? ''}` : s.blurb}
+              blurb={kind === 'jobs' && jobClosed(item) ? `Applications closed${item.deadline ? ` · deadline was ${item.deadline}` : ''}` : score > 0 ? `${score} match${score > 1 ? 'es' : ''} with your skills · ${s.blurb ?? ''}` : s.blurb}
               chips={s.chips}
               onPress={() => router.push(`/discover/${kind}/${item.id}`)}
             />

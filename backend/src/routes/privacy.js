@@ -21,6 +21,7 @@ privacyRoutes.get('/me/export', wrap(async (req, res) => {
     account: { ...publicUser(me), createdAt: me.created_at, lastLoginAt: me.last_login_at },
     connections: names(db.prepare('SELECT id, from_id, to_id, kind, status, message, created_at FROM connections WHERE from_id = ? OR to_id = ?').all(me.id, me.id), 'from_id').map((c) => ({ ...c, to_id: users.byId(c.to_id) ? pub(users.byId(c.to_id)).name : 'Deleted user' })),
     joinRequests: db.prepare('SELECT target_kind, target_id, role, message, status, created_at FROM collab_requests WHERE from_id = ?').all(me.id),
+    collegeJoinRequests: db.prepare('SELECT university, status, data, created_at, decided_at FROM join_requests WHERE user_id = ?').all(me.id).map((r) => ({ ...r, data: JSON.parse(r.data) })),
     eventRegistrations: db.prepare('SELECT event_id, status, created_at FROM registrations WHERE user_id = ?').all(me.id),
     notes: mine('note'), projects: mine('project'), startups: mine('startup'),
     noteRatings: db.prepare('SELECT note_id, rating, review, created_at FROM note_ratings WHERE user_id = ?').all(me.id),

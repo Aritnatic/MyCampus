@@ -48,6 +48,7 @@ careerRoutes.get('/career/paths/:id', wrap(async (req, res) => {
   const mine = mySkillList(req.user)
   const unis = uniCache()
   const jobs = viewDocs('job', docs.list('job').filter((j) => canView(req.user, 'job', j)), req.user)
+    .filter((j) => j.acceptingApplications) // past its deadline: don't suggest it
     .map((j) => ({ job: j, hits: j.skills.filter((s) => coverage([s], wanted).length) }))
     .filter((x) => x.hits.length)
     .sort((a, b) => b.hits.length - a.hits.length)

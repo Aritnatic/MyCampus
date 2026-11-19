@@ -12,7 +12,7 @@ import { useToast } from './ui'
 // and push registration. Refetches whenever the app returns to the foreground, because a phone can
 // miss stream events while it's asleep.
 export function RealtimeBridge() {
-  const { user } = useAuth()
+  const { user, refresh } = useAuth()
   const toast = useToast()
   const userId = user?.id
   const hasCampus = !!user?.university
@@ -28,6 +28,7 @@ export function RealtimeBridge() {
       onEvent: (type, data) => {
         if (type === 'notification') {
           refreshUnread()
+          if (data.type === 'join_approved' || data.type === 'join_rejected') refresh() // role may have changed: reload the account
           requestRefresh() // something was published or answered: refetch what's on screen
           if (data.data?.severity === undefined) toast.show(data.title) // alerts have their own banner
         } else if (type === 'alert') {

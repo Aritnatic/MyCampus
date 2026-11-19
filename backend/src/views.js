@@ -6,6 +6,16 @@ import { db } from './db.js'
 // cards derived from them. Admin APIs (/api/admin/*) always return the raw records.
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+// When something stops being current. A date-only value ("2026-11-20", a job deadline) lasts through that whole
+// day in India; a full timestamp ends at that moment.
+export function endsAt(value) {
+  if (!value) return null
+  const s = String(value)
+  const t = /^\d{4}-\d{2}-\d{2}$/.test(s) ? Date.parse(`${s}T23:59:59+05:30`) : Date.parse(s)
+  return Number.isNaN(t) ? null : t
+}
+export const hasEnded = (value, now = Date.now()) => { const t = endsAt(value); return t !== null && t < now }
 const money = (n) => `₹${Number(n).toLocaleString('en-IN')}`
 
 function stipendText(s) {
@@ -33,6 +43,9 @@ const toEvent = (e, counts) => ({
 
 const toJob = (j) => ({
   ...j,
+  // Past its deadline: no longer accepting applications, even if an admin left it marked open.
+  expired: hasEnded(j.deadline),
+  acceptingApplications: j.status === 'open' && !hasEnded(j.deadline),
   location: (j.locations ?? []).join(' / '),
   type: j.type === 'full-time' ? 'Full-time' : 'Internship',
   stipend: stipendText(j.stipend),
@@ -74,6 +87,7 @@ export function viewDocs(kind, docs, user) {
   switch (kind) {
     case 'event': { const counts = liveCounts(); return docs.map((e) => toEvent(e, counts)) }
     case 'job': return docs.map(toJob)
+    case 'notice': return docs.map((n) => ({ ...n, expired: hasEnded(n.expiresAt) }))
     case 'exam': return docs.filter((d) => mine(d) && (!profile || d.semester === profile.semester)).flatMap(toTimetable)
     case 'result':
     case 'grade': return docs.filter(mine).map(stripRanking)
