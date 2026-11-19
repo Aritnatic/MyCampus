@@ -211,6 +211,24 @@ const MIGRATIONS = [
   CREATE TRIGGER users_public_id AFTER INSERT ON users WHEN NEW.public_id IS NULL
     BEGIN UPDATE users SET public_id = 'MC-' || substr(hex(randomblob(2)), 1, 4) || '-' || substr(hex(randomblob(2)), 1, 4) WHERE id = NEW.id; END;
   `,
+  // 9 — invitations: the people running a project, startup or research listing invite someone to join it
+  // (the reverse of a join request). One open invite per person per listing.
+  `
+  CREATE TABLE invites (
+    id TEXT PRIMARY KEY,
+    target_kind TEXT NOT NULL CHECK (target_kind IN ('project', 'startup', 'research')),
+    target_id TEXT NOT NULL,
+    from_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    to_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role TEXT,
+    message TEXT,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'cancelled')),
+    created_at TEXT NOT NULL,
+    decided_at TEXT
+  );
+  CREATE UNIQUE INDEX invites_open ON invites (target_kind, target_id, to_id) WHERE status = 'pending';
+  CREATE INDEX invites_to ON invites (to_id, status);
+  `,
 ]
 
 const version = db.prepare('PRAGMA user_version').get().user_version

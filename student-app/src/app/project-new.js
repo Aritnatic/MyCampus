@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router'
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native'
 import { request } from '../api'
 import { Button, Field, FormError, TagInput, useToast } from '../components/ui'
+import { SkillPicker } from '../components/SkillPicker'
 import { tokens as t, radius, themed } from '../theme'
 
 const CATEGORIES = ['Web App', 'Mobile App', 'IoT', 'AI / ML', 'Hardware', 'Research', 'Other']
@@ -59,7 +60,7 @@ export default function NewProject() {
         <Field label="What is it?" value={f.description} onChangeText={(v) => set('description')(v.slice(0, 400))} multiline placeholder="One or two sentences on the problem and your approach." hint={`${f.description.length}/400`} error={errors.description} />
         <Choices label="Type" options={CATEGORIES.map((c) => [c, c])} value={f.category} onChange={set('category')} />
         <Choices label="Stage" options={STAGES} value={f.stage} onChange={set('stage')} />
-        <TagInput label="Tech and skills used" values={f.skills} onChange={set('skills')} placeholder="e.g. React Native, Arduino" />
+        <SkillPicker label="Tech and skills used" catalog="skills" values={f.skills} onChange={set('skills')} placeholder="Type a skill, e.g. React Native, Arduino" />
         <TagInput label="Who do you need?" values={f.lookingFor} onChange={set('lookingFor')} max={10} placeholder="e.g. UI designer, Backend developer" tone="yellow" hint="Roles help us match people to your project." />
         <View style={styles.visibility}>
           <View style={{ flex: 1 }}>

@@ -11,7 +11,7 @@ import { tokens as t, themed } from '../../theme'
 const ICONS = {
   notice: 'newspaper-outline', result: 'ribbon-outline', exam: 'calendar-outline', event: 'ticket-outline', job: 'briefcase-outline',
   alert: 'warning-outline', announcement: 'megaphone-outline', connection_request: 'person-add-outline', connection_accepted: 'checkmark-circle-outline',
-  collab_request: 'people-outline', collab_accepted: 'checkmark-circle-outline', collab_declined: 'close-circle-outline', event_seat: 'ticket-outline',
+  collab_request: 'people-outline', invite: 'mail-open-outline', invite_accepted: 'checkmark-circle-outline', invite_declined: 'close-circle-outline', collab_accepted: 'checkmark-circle-outline', collab_declined: 'close-circle-outline', event_seat: 'ticket-outline',
   guidance_accepted: 'school-outline', guidance_declined: 'school-outline',
 }
 
@@ -24,7 +24,7 @@ function routeFor(n) {
   if ((n.type === 'event' || n.type === 'event_seat') && d.eventId) return `/event/${d.eventId}`
   if (n.type === 'exam' || n.type === 'result') return '/exams'
   if (n.type === 'job' && d.jobId) return `/discover/jobs/${d.jobId}`
-  if ((n.type === 'collab_accepted' || n.type === 'collab_declined') && d.targetId) return `/discover/${d.targetKind === 'research' ? 'research' : `${d.targetKind}s`}/${d.targetId}`
+  if ((n.type === 'collab_accepted' || n.type === 'collab_declined' || n.type === 'invite_accepted' || n.type === 'invite_declined') && d.targetId) return `/discover/${d.targetKind === 'research' ? 'research' : `${d.targetKind}s`}/${d.targetId}`
   if (n.type === 'connection_accepted' && d.userId) return `/discover/people/${d.userId}`
   if ((n.type === 'guidance_accepted' || n.type === 'guidance_declined') && d.facultyId) return `/discover/faculty/${d.facultyId}`
   return null
@@ -36,15 +36,18 @@ function Requests() {
   const router = useRouter()
   const connections = useApi('/connections')
   const collab = useApi('/collab')
-  const loading = connections.loading || collab.loading
-  const error = connections.error || collab.error
-  const reload = () => { connections.reload(); collab.reload() }
+  const invites = useApi('/invites')
+  const loading = connections.loading || collab.loading || invites.loading
+  const error = connections.error || collab.error || invites.error
+  const reload = () => { connections.reload(); collab.reload(); invites.reload() }
+  const invited = (invites.data?.received ?? []).filter((r) => r.status === 'pending')
 
   const incoming = connections.data?.incoming ?? []
   const joins = (collab.data?.received ?? []).filter((r) => r.status === 'pending')
   const sent = [
     ...(connections.data?.outgoing ?? []).map((c) => ({ key: c.id, text: `${c.kind === 'mentor' ? 'Mentor request to' : 'Connection request to'} ${c.person.name}`, status: 'pending' })),
     ...(collab.data?.sent ?? []).map((r) => ({ key: r.id, text: `Join request: ${r.target?.title ?? 'a listing'}`, status: r.status })),
+    ...(invites.data?.sent ?? []).filter((r) => r.status !== 'cancelled').map((r) => ({ key: r.id, text: `Invited ${r.to?.name ?? 'someone'} to ${r.target?.title ?? 'a listing'}`, status: r.status })),
   ].filter((x) => x.status !== 'withdrawn')
 
   const act = async (path, ok) => {
@@ -57,7 +60,7 @@ function Requests() {
     reload()
   }
 
-  const nothing = !incoming.length && !joins.length && !sent.length
+  const nothing = !incoming.length && !joins.length && !invited.length && !sent.length
   return (
     <View style={{ gap: 10 }}>
       <Async loading={loading && nothing} error={error} onRetry={reload} emptyIcon="people-outline" emptyTitle="No requests yet" empty={nothing && 'When someone asks to connect, or to join your project, it shows up here. Find people in Discover.'}>
@@ -73,6 +76,21 @@ function Requests() {
             <View style={styles.actions}>
               <Button label="Accept" compact style={{ flex: 1 }} onPress={() => act(`/connections/${c.id}/accept`, 'Connected')} />
               <Button label="Decline" variant="secondary" compact style={{ flex: 1 }} onPress={() => act(`/connections/${c.id}/decline`, 'Request declined')} />
+            </View>
+          </Card>
+        ))}
+        {invited.map((r) => (
+          <Card key={r.id}>
+            <View style={styles.row}>
+              <Avatar name={r.from?.name} size={40} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.title} onPress={() => r.target && router.push(`/discover/${r.target.kind === 'research' ? 'research' : `${r.target.kind}s`}/${r.target.id}`)}>{r.from?.name} invited you to join {r.target?.title}</Text>
+                <Text style={styles.body}>{r.role ? `As: ${r.role}. ` : ''}{r.message ? `“${r.message}”` : 'Tap the title to see what it’s about.'}</Text>
+              </View>
+            </View>
+            <View style={styles.actions}>
+              <Button label="Join" compact style={{ flex: 1 }} onPress={() => act(`/invites/${r.id}/accept`, `You joined ${r.target?.title ?? 'the team'}`)} />
+              <Button label="Decline" variant="secondary" compact style={{ flex: 1 }} onPress={() => act(`/invites/${r.id}/decline`, 'Invite declined')} />
             </View>
           </Card>
         ))}
@@ -116,7 +134,7 @@ export default function Inbox() {
     if (!n.read) {
       request(`/notifications/${n.id}/read`, { method: 'POST' }).then(reload).catch(() => {})
     }
-    if (n.type === 'connection_request' || n.type === 'collab_request') return setTab('requests')
+    if (n.type === 'connection_request' || n.type === 'collab_request' || n.type === 'invite') return setTab('requests')
     const href = routeFor(n)
     if (href) router.push(href)
   }, [reload, router])

@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Swit
 import { Button, Field, FormError, TagInput, useToast } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 import { tokens as t, radius, themed } from '../theme'
+import { SkillPicker } from '../components/SkillPicker'
 
 const BRANCHES = [
   ['CSE', 'Computer Science & Engineering'], ['IT', 'Information Technology'], ['ECE', 'Electronics & Communication'],
@@ -93,8 +94,8 @@ export default function ProfileEdit() {
         ) : null}
 
         <Field label="About you" value={f.bio} onChangeText={(v) => set('bio')(v.slice(0, 500))} multiline placeholder="What are you working on or learning?" hint={`${f.bio.length}/500`} />
-        <TagInput label="Skills" values={f.skills} onChange={set('skills')} placeholder="e.g. Python, Arduino, AutoCAD" hint="What you can do today." />
-        <TagInput label="Interests" values={f.interests} onChange={set('interests')} placeholder="e.g. IoT, Startups, Research" tone="blue" hint="What you want to explore." />
+        <SkillPicker label="Skills" catalog="skills" values={f.skills} onChange={set('skills')} placeholder="Type a skill, e.g. Python, AutoCAD, Soil Testing" hint="What you can do today. Pick from the list or add your own." />
+        <SkillPicker label="Interests" catalog="interests" values={f.interests} onChange={set('interests')} placeholder="Type an interest, e.g. Startups, Drones" tone="blue" hint="What you want to explore." />
         <TagInput label="Looking for" values={f.lookingFor} onChange={set('lookingFor')} max={10} placeholder="e.g. Hardware co-founder" tone="yellow" hint="Roles or help you need — used to match you with people." />
 
         {isStudent ? (

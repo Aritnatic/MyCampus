@@ -51,6 +51,8 @@ function RootStack() {
             <Stack.Screen name="change-password" options={detail('Change password')} />
             <Stack.Screen name="feedback" options={detail('Send feedback')} />
             <Stack.Screen name="join" options={detail('Join your college')} />
+            <Stack.Screen name="invite" options={detail('Invite people')} />
+            <Stack.Screen name="students" options={detail('All students')} />
             <Stack.Screen name="profile-edit" options={detail('Edit profile')} />
             <Stack.Screen name="exams" options={detail('Exams & results')} />
             <Stack.Screen name="notes" options={detail('Study notes')} />

@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import { requireAuth } from '../auth.js'
-import { canView, DISCOVER, matchScore } from '../access.js'
+import { branchCode, canView, DISCOVER, matchScore } from '../access.js'
 import { docs, studentsVersion, users } from '../db.js'
 import { HttpError, parse, wrap, z } from '../http.js'
 import { canSeePerson, connectionCounts, isMentor, personView, studentRows, uniCache, withUni , contactFor} from '../directory.js'
@@ -167,3 +167,24 @@ function computeMatches(user) {
 
   return { projects, startups, research, people: shownPeople, faculty, profileComplete: mine.length > 0 }
 }
+
+// Every verified student at your college, A–Z, with search and branch / year filters, a page at a time. (The
+// People list is ranked by how well people match you and stops at 100; this is the full directory.)
+discoverRoutes.get('/directory/students', wrap(async (req, res) => {
+  if (!req.user.university) throw new HttpError(403, 'Join your college to see its students.')
+  const { q, branch, year, page, limit } = parse(z.object({
+    q: z.string().trim().max(80).optional(), branch: z.string().trim().max(20).optional(),
+    year: z.coerce.number().int().min(1).max(6).optional(),
+    page: z.coerce.number().int().min(1).default(1), limit: z.coerce.number().int().min(1).max(100).default(40),
+  }), req.query)
+  const needle = q?.toLowerCase()
+  const all = studentRows()
+    .filter(({ row }) => row.university === req.user.university && canSeePerson(req.user, row))
+    .filter(({ profile: p }) => (!branch || branchCode(p.branch) === branch) && (!year || p.year === year))
+    .filter(({ row, profile: p }) => !needle || p.name.toLowerCase().includes(needle) || String(row.public_id ?? '').toLowerCase().includes(needle)
+      || (p.skills ?? []).some((s) => s.toLowerCase().includes(needle)))
+    .sort((a, b) => a.profile.name.localeCompare(b.profile.name))
+  const unis = uniCache()
+  const counts = connectionCounts()
+  res.json({ total: all.length, page, limit, items: all.slice((page - 1) * limit, page * limit).map(({ row, profile }) => ({ ...personView(row, unis, counts, profile), isMe: row.id === req.user.id })) })
+}))

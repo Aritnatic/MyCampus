@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router'
 import { useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { request } from '../api'
@@ -12,6 +13,7 @@ const TARGET_KIND = { projects: 'project', startups: 'startup', research: 'resea
 // The "what can I do with this?" row on a detail screen: connect, ask for mentorship, ask to join.
 export function DetailActions({ kind, item }) {
   const { user } = useAuth()
+  const router = useRouter()
   const toast = useToast()
   const rel = useRelations()
   const guidance = useApi(kind === 'faculty' ? '/me/guidance' : null)
@@ -126,6 +128,9 @@ export function DetailActions({ kind, item }) {
   return (
     <View style={styles.wrap}>
       {owner ? <Chip label="You started this" tone="violet" /> : onTeam ? <Chip label="You're on the team" tone="green" /> : null}
+      {owner && kind !== 'research' ? (
+        <Button label="Invite people" icon="person-add-outline" onPress={() => router.push(`/invite?kind=${targetKind}&id=${item.id}&title=${encodeURIComponent(item.title ?? item.name ?? '')}`)} />
+      ) : null}
       {!onTeam && req?.status === 'pending' ? (
         <View style={styles.row}>
           <Button label="Request sent" variant="secondary" disabled style={{ flex: 1 }} />

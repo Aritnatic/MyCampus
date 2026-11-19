@@ -38,6 +38,15 @@ export default function Discover() {
         ))}
       </View>
 
+      <Pressable onPress={() => router.push('/students')} accessibilityRole="button" accessibilityLabel="All students at your college" style={styles.mentor}>
+        <View style={styles.mentorIcon}><Ionicons name="people-circle-outline" size={22} color={t.violetText} /></View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.mentorTitle}>All students</Text>
+          <Text style={styles.mentorBody}>Everyone at your college, A–Z. Filter by branch and year.</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={t.inkFaint} />
+      </Pressable>
+
       <Pressable onPress={() => router.push('/discover/people?mentors=1')} accessibilityRole="button" accessibilityLabel="Find a mentor" style={styles.mentor}>
         <View style={styles.mentorIcon}><Ionicons name="school-outline" size={22} color={t.violetText} /></View>
         <View style={{ flex: 1 }}>
