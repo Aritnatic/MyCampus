@@ -33,12 +33,24 @@ export const config = {
   // seeds, unless someone deliberately sets SEED_DEMO=1 on a throwaway environment.
   seedDemo: process.env.SEED_DEMO === '1' || (!production && process.env.SEED_DEMO !== '0'),
   tokenTtl: '7d',
-  // Where outgoing email goes: 'console' (dev: prints codes, and the API returns them), 'resend', or ''
+  // Where outgoing email goes: 'console' (dev: prints codes, and the API returns them), 'smtp' (any mail
+  // account, e.g. Gmail with an app password), 'resend', or ''
   // (nothing configured). Production requires a real provider.
-  mailProvider: process.env.MAIL_PROVIDER ?? (production ? '' : 'console'),
-  mailFrom: process.env.MAIL_FROM ?? 'MyCampus <no-reply@localhost>',
+  // With a mail account filled in (SMTP_USER + SMTP_PASS) and no provider named, use it.
+  mailProvider: process.env.MAIL_PROVIDER ?? (process.env.SMTP_USER && process.env.SMTP_PASS ? 'smtp' : production ? '' : 'console'),
+  // Gmail only sends as the account itself, so with SMTP the sender defaults to that address.
+  mailFrom: process.env.MAIL_FROM ?? (process.env.SMTP_USER ? `MyCampus <${process.env.SMTP_USER}>` : 'MyCampus <no-reply@localhost>'),
   resendApiKey: process.env.RESEND_API_KEY ?? '',
   resendUrl: process.env.RESEND_API_URL ?? 'https://api.resend.com/emails', // overridable so tests never call the real service
+  // SMTP (MAIL_PROVIDER=smtp). Gmail: host smtp.gmail.com, port 465, user = the Gmail address, pass = a 16-letter
+  // app password (Google Account → Security → App passwords; needs 2-Step Verification), never the real password.
+  smtp: {
+    host: process.env.SMTP_HOST ?? 'smtp.gmail.com',
+    port: Number(process.env.SMTP_PORT ?? 465),
+    secure: process.env.SMTP_SECURE ? process.env.SMTP_SECURE === '1' : Number(process.env.SMTP_PORT ?? 465) === 465,
+    user: process.env.SMTP_USER ?? '',
+    pass: (process.env.SMTP_PASS ?? '').replace(/\s+/g, ''), // Google shows app passwords in groups of four
+  },
   // Set EXPO_PUSH=1 to deliver push notifications through Expo's push service.
   expoPush: process.env.EXPO_PUSH === '1',
   // If set, the built admin panel in this folder is served by the API at "/" (one URL for the pilot).
@@ -58,8 +70,9 @@ export function assertProductionReady() {
   const problems = []
   if (config.jwtSecret.length < 32) problems.push('JWT_SECRET must be at least 32 characters.')
   if (config.corsOrigin === '*') problems.push('CORS_ORIGIN must list your real origins (comma-separated), not *.')
-  if (!['resend'].includes(config.mailProvider)) problems.push('MAIL_PROVIDER must be set (supported: resend) — without it nobody can sign up or reset a password.')
+  if (!['resend', 'smtp'].includes(config.mailProvider)) problems.push('MAIL_PROVIDER must be set (smtp or resend) — without it nobody can sign up or reset a password.')
   if (config.mailProvider === 'resend' && !config.resendApiKey) problems.push('RESEND_API_KEY is required when MAIL_PROVIDER=resend.')
+  if (config.mailProvider === 'smtp' && (!config.smtp.user || !config.smtp.pass)) problems.push('SMTP_USER and SMTP_PASS are required when MAIL_PROVIDER=smtp.')
   if (config.seedDemo) problems.push('SEED_DEMO=1 would create demo accounts with a public password. Remove it.')
   if (problems.length) throw new Error(`Not safe to start in production:\n - ${problems.join('\n - ')}`)
 }

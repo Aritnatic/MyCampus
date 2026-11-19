@@ -21,9 +21,8 @@ Set these as the platform's secrets/environment (never commit them):
 |---|---|
 | `JWT_SECRET` | 32+ random characters, e.g. `openssl rand -hex 32`. Changing it signs everyone out. |
 | `CORS_ORIGIN` | Your public address, e.g. `https://mycampus.college.edu.in` (comma-separate several). Not `*`. |
-| `MAIL_PROVIDER` | `resend` |
-| `RESEND_API_KEY` | From resend.com. Verify your sending domain there first (SPF/DKIM), or mail lands in spam. |
-| `MAIL_FROM` | e.g. `MyCampus <no-reply@college.edu.in>` on the verified domain |
+| `SMTP_USER`, `SMTP_PASS` | **Free option.** A Gmail address and its 16-letter app password (https://myaccount.google.com/apppasswords, needs 2-Step Verification). About 500 emails a day. With both set the server sends through Gmail by itself. |
+| `MAIL_PROVIDER` | Only if you'd rather use Resend: `resend` (then `RESEND_API_KEY`, and `MAIL_FROM` on a domain you've verified there, or mail lands in spam) |
 | `EXPO_PUSH` | `1` once the phone app has real push credentials |
 
 Already set by the Docker image: `NODE_ENV=production`, `DATA_DIR=/data`, `ADMIN_DIR=/app/admin`, `PORT=4000`. Optional: `AUTH_IP_LIMIT` (default 600 per 15 min), `LOG_REQUESTS`, `BACKUP_EVERY_HOURS` (24), `BACKUP_KEEP` (14).
