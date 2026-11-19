@@ -128,7 +128,9 @@ export function DetailActions({ kind, item }) {
   return (
     <View style={styles.wrap}>
       {owner ? <Chip label="You started this" tone="violet" /> : onTeam ? <Chip label="You're on the team" tone="green" /> : null}
-      {owner && kind !== 'research' ? (
+      {owner && kind === 'research' && item.status === 'proposed' ? <Text style={styles.hint}>Waiting for your college’s research admins to approve it. Only you can see it until then.</Text> : null}
+      {owner && kind === 'research' && item.status === 'rejected' ? <Text style={styles.hint}>Not approved{item.rejectReason ? `: “${item.rejectReason}”` : '.'} You can propose it again with changes.</Text> : null}
+      {owner && !(kind === 'research' && ['proposed', 'rejected'].includes(item.status)) ? (
         <Button label="Invite people" icon="person-add-outline" onPress={() => router.push(`/invite?kind=${targetKind}&id=${item.id}&title=${encodeURIComponent(item.title ?? item.name ?? '')}`)} />
       ) : null}
       {!onTeam && req?.status === 'pending' ? (

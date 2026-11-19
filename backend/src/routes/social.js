@@ -120,7 +120,9 @@ const startupBody = z.object({
 const REQUIRED = { project: ['title', 'description', 'category'], startup: ['name', 'tagline', 'description', 'sector'] }
 
 const isOwner = (user, doc) => (doc.ownerId ?? doc.teamIds?.[0]) === user.id
-const ownerIds = (kind, doc) => (kind === 'research' ? [] : doc.ownerId ? [doc.ownerId] : (doc.teamIds ?? []).slice(0, 1))
+// Research posted by admins has no student owner (requests go to the admins who run research); research a
+// student proposed and an admin approved is run by that student, like a project.
+const ownerIds = (kind, doc) => (kind === 'research' ? (doc.ownerId ? [doc.ownerId] : []) : doc.ownerId ? [doc.ownerId] : (doc.teamIds ?? []).slice(0, 1))
 
 function ownedContent(plural, kind, schema, defaults) {
   socialRoutes.post(`/${plural}`, requireStudent, wrap(async (req, res) => {
@@ -169,7 +171,7 @@ socialRoutes.get('/collab', wrap(async (req, res) => {
   const unis = uniCache()
   const sent = db.prepare('SELECT * FROM collab_requests WHERE from_id = ? ORDER BY created_at DESC').all(req.user.id)
   // Requests for things you own: projects/startups where you're the owner.
-  const owned = [...docs.list('project').map((d) => ['project', d]), ...docs.list('startup').map((d) => ['startup', d])].filter(([, d]) => isOwner(req.user, d))
+  const owned = [...docs.list('project').map((d) => ['project', d]), ...docs.list('startup').map((d) => ['startup', d]), ...docs.list('research').filter((d) => d.ownerId).map((d) => ['research', d])].filter(([, d]) => isOwner(req.user, d))
   const received = owned.flatMap(([kind, d]) => db.prepare('SELECT * FROM collab_requests WHERE target_kind = ? AND target_id = ? ORDER BY created_at DESC').all(kind, d.id))
   res.json({ sent: sent.map((r) => presentRequest(r, unis)), received: received.map((r) => presentRequest(r, unis)) })
 }))
@@ -213,7 +215,7 @@ function decideRequest(status) {
   return wrap(async (req, res) => {
     const r = db.prepare('SELECT * FROM collab_requests WHERE id = ?').get(req.params.id)
     const doc = r && docs.get(r.target_kind, r.target_id)
-    if (!doc || !isOwner(req.user, doc) || r.target_kind === 'research') throw new HttpError(404, 'Request not found.')
+    if (!doc || !isOwner(req.user, doc) || (r.target_kind === 'research' && !doc.ownerId)) throw new HttpError(404, 'Request not found.')
     if (r.status !== 'pending') throw new HttpError(409, 'That request was already answered.')
     db.prepare('UPDATE collab_requests SET status = ?, decided_at = ? WHERE id = ?').run(status, now(), r.id)
 
@@ -233,3 +235,38 @@ function decideRequest(status) {
 }
 socialRoutes.post('/collab/:id/accept', decideRequest('accepted'))
 socialRoutes.post('/collab/:id/decline', decideRequest('declined'))
+
+// ---------------- research proposals ----------------
+// A student proposes a research project; it stays hidden from everyone else until an admin who manages research
+// approves it (then it's listed, and the student runs it: join requests, invites). Admins can also reject it,
+// with a reason the student sees.
+const proposalBody = z.object({
+  title: z.string().trim().min(5, 'Give it a clear title.').max(140),
+  description: z.string().trim().min(30, 'Describe the idea in a few sentences (30+ characters).').max(2000),
+  department: z.string().trim().max(80).optional(),
+  supervisor: z.string().trim().max(80).optional(),
+  requiredSkills: list(15, 40).optional(),
+  positions: z.number().int().min(1).max(20).optional(),
+  duration: z.string().trim().max(40).optional(),
+  visibility: z.enum(['campus', 'cross-university']).optional(),
+}).strict()
+
+const researchAdmins = (university) => db.prepare("SELECT id, data FROM users WHERE role = 'admin' AND university = ? AND status = 'active'").all(university)
+  .filter((a) => { const p = JSON.parse(a.data); return p.adminRole === 'superadmin' || p.permissions?.includes('research') })
+
+socialRoutes.post('/research/proposals', requireStudent, wrap(async (req, res) => {
+  const body = parse(proposalBody, req.body)
+  const open = docs.list('research').filter((d) => d.ownerId === req.user.id && d.status === 'proposed').length
+  if (open >= 3) throw new HttpError(429, 'You already have 3 proposals waiting. Wait for a decision first.')
+  const doc = {
+    title: body.title, description: body.description, department: body.department ?? '', supervisor: body.supervisor || 'To be assigned',
+    requiredSkills: body.requiredSkills ?? [], preferredSkills: [], tags: [], positions: body.positions ?? 2, duration: body.duration ?? '',
+    type: 'student-led', visibility: body.visibility ?? 'campus',
+    id: newId('res'), university: req.user.university, status: 'proposed', ownerId: req.user.id, teamIds: [req.user.id], team: [nameOf(req.user)],
+    proposedBy: nameOf(req.user), createdAt: now(),
+  }
+  docs.put('research', doc)
+  notify(researchAdmins(req.user.university).map((a) => a.id), { type: 'research_proposal', title: `${nameOf(req.user)} proposed research: ${doc.title}`, body: doc.description.slice(0, 140), data: { researchId: doc.id } })
+  audit(req.user, 'research.propose', doc.id)
+  res.status(201).json(doc)
+}))

@@ -48,6 +48,8 @@ function RootStack() {
             <Stack.Screen name="events" options={detail('Events')} />
             <Stack.Screen name="search" options={{ ...detail('Search'), headerBackTitle: 'Home' }} />
             <Stack.Screen name="project-new" options={detail('Start a project')} />
+            <Stack.Screen name="startup-new" options={detail('Post a startup')} />
+            <Stack.Screen name="research-new" options={detail('Propose research')} />
             <Stack.Screen name="change-password" options={detail('Change password')} />
             <Stack.Screen name="feedback" options={detail('Send feedback')} />
             <Stack.Screen name="join" options={detail('Join your college')} />

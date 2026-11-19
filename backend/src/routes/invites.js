@@ -18,7 +18,10 @@ const isOwner = (user, doc) => (doc.ownerId ?? doc.teamIds?.[0]) === user.id
 
 // Who may invite people to `doc`.
 function canInvite(user, kind, doc) {
-  if (kind === 'research') return user.role === 'admin' && doc.university === user.university && hasPermission(user, 'research')
+  if (kind === 'research') {
+    if (user.role === 'admin') return doc.university === user.university && hasPermission(user, 'research')
+    return isOwner(user, doc) && !['proposed', 'rejected'].includes(doc.status)
+  }
   return isOwner(user, doc)
 }
 
@@ -125,3 +128,31 @@ function decide(status) {
 inviteRoutes.post('/invites/:id/accept', requireAuth, decide('accepted'))
 inviteRoutes.post('/invites/:id/decline', requireAuth, decide('declined'))
 inviteRoutes.post('/invites/:id/cancel', requireAuth, decide('cancelled'))
+
+// ---- research proposals: admins who manage research approve or reject them ----
+function proposalFor(req) {
+  const doc = docs.get('research', req.params.id)
+  if (!doc || doc.university !== req.user.university) throw new HttpError(404, 'Not found.')
+  if (doc.status !== 'proposed') throw new HttpError(409, 'This proposal was already decided.')
+  return doc
+}
+
+inviteRoutes.post('/admin/research/:id/approve', requireAuth, wrap(async (req, res) => {
+  if (!hasPermission(req.user, 'research')) throw new HttpError(403, "You don't have permission to do that.")
+  const { supervisor } = parse(z.object({ supervisor: z.string().trim().max(80).optional() }), req.body ?? {})
+  const doc = proposalFor(req)
+  const next = docs.put('research', { ...doc, status: 'recruiting', ...(supervisor && { supervisor }), approvedAt: now(), approvedBy: req.user.id })
+  notify([doc.ownerId], { type: 'research_approved', title: `Your research “${doc.title}” is approved`, body: 'It’s listed now. Invite people or wait for requests to join.', data: { targetKind: 'research', targetId: doc.id } })
+  audit(req.user, 'research.approve', doc.id)
+  res.json(next)
+}))
+
+inviteRoutes.post('/admin/research/:id/reject', requireAuth, wrap(async (req, res) => {
+  if (!hasPermission(req.user, 'research')) throw new HttpError(403, "You don't have permission to do that.")
+  const { reason } = parse(z.object({ reason: z.string().trim().max(300).optional().default('') }), req.body ?? {})
+  const doc = proposalFor(req)
+  const next = docs.put('research', { ...doc, status: 'rejected', rejectReason: reason, decidedAt: now() })
+  notify([doc.ownerId], { type: 'research_rejected', title: `Your research proposal “${doc.title}” wasn’t approved`, body: reason || 'Talk to your department for feedback, then propose again.', data: { targetKind: 'research', targetId: doc.id } })
+  audit(req.user, 'research.reject', doc.id)
+  res.json(next)
+}))

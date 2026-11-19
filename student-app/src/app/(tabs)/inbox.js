@@ -11,7 +11,7 @@ import { tokens as t, themed } from '../../theme'
 const ICONS = {
   notice: 'newspaper-outline', result: 'ribbon-outline', exam: 'calendar-outline', event: 'ticket-outline', job: 'briefcase-outline',
   alert: 'warning-outline', announcement: 'megaphone-outline', connection_request: 'person-add-outline', connection_accepted: 'checkmark-circle-outline',
-  collab_request: 'people-outline', invite: 'mail-open-outline', invite_accepted: 'checkmark-circle-outline', invite_declined: 'close-circle-outline', collab_accepted: 'checkmark-circle-outline', collab_declined: 'close-circle-outline', event_seat: 'ticket-outline',
+  collab_request: 'people-outline', invite: 'mail-open-outline', research_approved: 'flask-outline', research_rejected: 'flask-outline', invite_accepted: 'checkmark-circle-outline', invite_declined: 'close-circle-outline', collab_accepted: 'checkmark-circle-outline', collab_declined: 'close-circle-outline', event_seat: 'ticket-outline',
   guidance_accepted: 'school-outline', guidance_declined: 'school-outline',
 }
 
@@ -24,7 +24,7 @@ function routeFor(n) {
   if ((n.type === 'event' || n.type === 'event_seat') && d.eventId) return `/event/${d.eventId}`
   if (n.type === 'exam' || n.type === 'result') return '/exams'
   if (n.type === 'job' && d.jobId) return `/discover/jobs/${d.jobId}`
-  if ((n.type === 'collab_accepted' || n.type === 'collab_declined' || n.type === 'invite_accepted' || n.type === 'invite_declined') && d.targetId) return `/discover/${d.targetKind === 'research' ? 'research' : `${d.targetKind}s`}/${d.targetId}`
+  if ((n.type === 'collab_accepted' || n.type === 'collab_declined' || n.type === 'invite_accepted' || n.type === 'invite_declined' || n.type === 'research_approved' || n.type === 'research_rejected') && d.targetId) return `/discover/${d.targetKind === 'research' ? 'research' : `${d.targetKind}s`}/${d.targetId}`
   if (n.type === 'connection_accepted' && d.userId) return `/discover/people/${d.userId}`
   if ((n.type === 'guidance_accepted' || n.type === 'guidance_declined') && d.facultyId) return `/discover/faculty/${d.facultyId}`
   return null

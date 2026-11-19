@@ -19,12 +19,16 @@ const POLICY = {
 // Content that students only see once it's live; admins see every status for their university.
 const LIVE = { notice: ['published'], result: ['published'], job: ['open'], exam: ['scheduled', 'published'], event: ['approved', 'published'] }
 
+const HIDDEN_RESEARCH = ['proposed', 'rejected']
+
 const isMember = (user, doc) => user.role !== 'individual' && !!user.university && user.university === doc.university
 
 export function canView(user, kind, doc) {
   if (user.role === 'admin') return doc.university === user.university || POLICY[kind] === 'open' || doc.visibility === 'cross-university'
   const live = LIVE[kind]
   if (live && !live.includes(doc.status)) return false
+  // A student's research proposal is only visible to them until an admin approves it.
+  if (kind === 'research' && HIDDEN_RESEARCH.includes(doc.status) && doc.ownerId !== user.id) return false
   switch (POLICY[kind]) {
     case 'campus': return isMember(user, doc)
     case 'shared': return isMember(user, doc) || doc.visibility === 'cross-university'

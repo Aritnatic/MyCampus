@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { FlaskConical, GraduationCap, Inbox, HelpCircle, Pencil, Plus, Trash2 } from 'lucide-react'
+import { Check, FlaskConical, GraduationCap, Inbox, HelpCircle, Pencil, Plus, Trash2, UserPlus, X } from 'lucide-react'
 import { request } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 import { useToast } from '../../components/feedback/Toast'
@@ -33,11 +33,14 @@ const FACULTY = {
 }
 
 const RESEARCH = {
+  invites: 'research', proposals: true,
   path: '/admin/research', noun: 'research opportunity', permission: 'research', icon: FlaskConical,
   blank: { title: '', supervisor: '', department: '', description: '', status: 'recruiting', type: 'funded', duration: '', stipend: '', positions: 1, deadline: '', requiredSkills: [], preferredSkills: [], visibility: 'campus' },
   columns: [
     ['Title', (r) => <><div style={{ color: tokens.ink }}>{r.title}</div><div className="text-xs" style={{ color: tokens.inkFaint }}>{r.supervisor}</div></>],
-    ['Status', (r) => <StatusPill kind={r.status === 'recruiting' ? 'open' : 'closed'}>{r.status}</StatusPill>],
+    ['Status', (r) => r.status === 'proposed'
+      ? <><StatusPill kind="pending">proposed</StatusPill><div className="text-[11px] mt-1" style={{ color: tokens.inkFaint }}>by {r.proposedBy}</div></>
+      : <StatusPill kind={r.status === 'recruiting' ? 'open' : 'closed'}>{r.status}</StatusPill>],
     ['Positions', (r) => r.positions ?? '—'],
     ['Visible to', (r) => (r.visibility === 'cross-university' ? 'All universities' : 'My campus')],
   ],
@@ -92,6 +95,20 @@ function Crud({ cfg }) {
   const toast = useToast()
   const list = useAdminApi(cfg.path)
   const [editing, setEditing] = useState(null) // null | 'new' | record
+  const [inviting, setInviting] = useState(null)
+  const [rejecting, setRejecting] = useState(null)
+  const [reason, setReason] = useState('')
+  // A student's research proposal: approving lists it in the app (the student runs it); rejecting tells them why.
+  const approve = async (r) => {
+    setBusy(r.id)
+    try { await request(`/admin/research/${r.id}/approve`, { method: 'POST', body: {} }); toast.success(`“${r.title}” is live. ${r.proposedBy} was told.`, { title: 'Approved' }); list.reload() } catch (err) { toast.error(err.message, { title: 'Could not approve' }) }
+    setBusy(false)
+  }
+  const reject = async () => {
+    setBusy(rejecting.id)
+    try { await request(`/admin/research/${rejecting.id}/reject`, { method: 'POST', body: { reason: reason.trim() } }); toast.success(`${rejecting.proposedBy} was told why.`, { title: 'Rejected' }); setRejecting(null); list.reload() } catch (err) { toast.error(err.message, { title: 'Could not reject' }) }
+    setBusy(false)
+  }
   const [deleting, setDeleting] = useState(null)
   const [busy, setBusy] = useState(false)
 
@@ -127,6 +144,15 @@ function Crud({ cfg }) {
                 <tr key={r.id} style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
                   {cfg.columns.map(([label, cell]) => <td key={label} className={td} style={{ color: tokens.inkSoft }}>{cell(r)}</td>)}
                   <td className={`${td} text-right whitespace-nowrap`}>
+                    {cfg.proposals && r.status === 'proposed' ? (
+                      <span className="inline-flex gap-2 mr-2">
+                        <Button variant="secondary" onClick={() => { setRejecting(r); setReason('') }}><X className="w-4 h-4" aria-hidden /> Reject</Button>
+                        <Button onClick={() => approve(r)} loading={busy === r.id}><Check className="w-4 h-4" aria-hidden /> Approve</Button>
+                      </span>
+                    ) : null}
+                    {cfg.invites && !['proposed', 'rejected'].includes(r.status) ? (
+                      <button type="button" onClick={() => setInviting(r)} aria-label={`Invite students to ${r.title}`} title="Invite students" className="p-1.5 hover:bg-white/[0.05]" style={{ color: tokens.violetText, borderRadius: 6 }}><UserPlus className="w-4 h-4" /></button>
+                    ) : null}
                     <button type="button" onClick={() => setEditing(r)} aria-label={`Edit ${r.name ?? r.title}`} className="p-1.5 hover:bg-white/[0.05]" style={{ color: tokens.inkSoft, borderRadius: 6 }}><Pencil className="w-4 h-4" /></button>
                     <button type="button" onClick={() => setDeleting(r)} aria-label={`Delete ${r.name ?? r.title}`} className="p-1.5 hover:bg-white/[0.05]" style={{ color: tokens.red, borderRadius: 6 }}><Trash2 className="w-4 h-4" /></button>
                   </td>
@@ -137,6 +163,17 @@ function Crud({ cfg }) {
         )}
       </SectionCard>
 
+      {inviting && <InviteModal kind={cfg.invites} item={inviting} onClose={() => setInviting(null)} />}
+      {rejecting && (
+        <Modal title={`Reject “${rejecting.title}”?`} onClose={() => setRejecting(null)} footer={<>
+          <Button variant="secondary" onClick={() => setRejecting(null)}>Cancel</Button>
+          <Button variant="danger" onClick={reject} loading={busy === rejecting.id}>Reject</Button>
+        </>}>
+          <Field label={`Reason (shown to ${rejecting.proposedBy})`} htmlFor="reject-research" hint="For example: find a faculty supervisor first, or narrow the scope.">
+            <TextArea id="reject-research" rows={3} maxLength={300} value={reason} onChange={(e) => setReason(e.target.value)} />
+          </Field>
+        </Modal>
+      )}
       {editing && <RecordForm cfg={cfg} record={editing === 'new' ? null : editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); list.reload() }} />}
       {deleting && <ConfirmDialog title={`Delete this ${cfg.noun}?`} danger confirmText="Delete" loading={busy} message={`“${deleting.name ?? deleting.title}” will disappear from the app for every student. This can't be undone.`} onConfirm={remove} onClose={() => setDeleting(null)} />}
     </>
@@ -346,5 +383,62 @@ function GuidanceInbox() {
         </Modal>
       )}
     </div>
+  )
+}
+
+// Invite students to a research listing: search your college's students, invite, see who's still deciding.
+function InviteModal({ kind, item, onClose }) {
+  const toast = useToast()
+  const [q, setQ] = useState('')
+  const [busy, setBusy] = useState(null)
+  const people = useAdminApi(`/admin/students?limit=20${q.trim() ? `&q=${encodeURIComponent(q.trim())}` : ''}`)
+  const sent = useAdminApi(`/invites/for/${kind}/${item.id}`)
+  const stateOf = (id) => (sent.data ?? []).find((r) => r.to?.id === id && (r.status === 'pending' || r.status === 'accepted'))?.status
+  const onTeam = (id) => (item.teamIds ?? []).includes(id)
+  const invite = async (s) => {
+    setBusy(s.id)
+    try { await request('/invites', { method: 'POST', body: { targetKind: kind, targetId: item.id, to: s.id } }); toast.success(`${s.name} was invited.`, { title: 'Invite sent' }); sent.reload() } catch (err) { toast.error(err.message, { title: 'Could not invite' }) }
+    setBusy(null)
+  }
+  const cancel = async (r) => {
+    try { await request(`/invites/${r.id}/cancel`, { method: 'POST' }); sent.reload() } catch (err) { toast.error(err.message) }
+  }
+  const waiting = (sent.data ?? []).filter((r) => r.status === 'pending')
+  return (
+    <Modal title={`Invite students to “${item.title}”`} onClose={onClose} size="lg" footer={<Button onClick={onClose}>Done</Button>}>
+      <div className="space-y-4">
+        <p className="text-sm" style={{ color: tokens.inkSoft }}>They get a notification in the app and choose to join. Joining adds them to the team.</p>
+        {waiting.length ? (
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: tokens.inkFaint }}>Waiting for an answer</div>
+            {waiting.map((r) => (
+              <div key={r.id} className="flex items-center justify-between py-1.5 text-sm">
+                <span style={{ color: tokens.ink }}>{r.to?.name}</span>
+                <button type="button" onClick={() => cancel(r)} className="text-xs font-medium hover:underline" style={{ color: tokens.red }}>Cancel</button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+        <TextInput value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search students by name, email, reg. no. or MyCampus ID" aria-label="Search students" autoFocus />
+        {people.loading && !people.data ? <Loading /> : people.error ? <ErrorState message={people.error} onRetry={people.reload} /> : (
+          <div className="max-h-80 overflow-y-auto admin-scrollbar-thin">
+            {(people.data?.items ?? []).filter((s) => s.status === 'active' && s.verified).map((s) => {
+              const st = onTeam(s.id) ? 'team' : stateOf(s.id)
+              return (
+                <div key={s.id} className="flex items-center gap-3 py-2" style={{ borderBottom: `1px solid ${tokens.hairline2}` }}>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium" style={{ color: tokens.ink }}>{s.name}</div>
+                    <div className="text-[11px]" style={{ color: tokens.inkFaint }}>{[s.branch, s.semester && `Sem ${s.semester}`, s.rollNumber].filter(Boolean).join(' · ')}</div>
+                  </div>
+                  {st === 'team' ? <StatusPill kind="approved">on team</StatusPill> : st === 'accepted' ? <StatusPill kind="approved">joined</StatusPill> : st === 'pending' ? <StatusPill kind="pending">invited</StatusPill> : (
+                    <Button onClick={() => invite(s)} loading={busy === s.id}><UserPlus className="w-4 h-4" aria-hidden /> Invite</Button>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </Modal>
   )
 }

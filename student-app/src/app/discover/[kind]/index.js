@@ -64,6 +64,8 @@ export default function DiscoverList() {
               </View>
             ) : null}
             {kind === 'projects' && user.role === 'student' ? <Button label="Start a project" icon="add-circle-outline" variant="secondary" compact onPress={() => router.push('/project-new')} /> : null}
+            {kind === 'startups' && user.role === 'student' ? <Button label="Post your startup" icon="rocket-outline" variant="secondary" compact onPress={() => router.push('/startup-new')} /> : null}
+            {kind === 'research' && user.role === 'student' ? <Button label="Propose research" icon="flask-outline" variant="secondary" compact onPress={() => router.push('/research-new')} /> : null}
             {kind === 'jobs' ? (
               <Segmented value={jobsWhen} onChange={setJobsWhen} options={[{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }]} />
             ) : null}
