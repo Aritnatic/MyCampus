@@ -254,7 +254,7 @@ const ACTIONS = {
   'alert.create': 'Raised a safety alert', 'alert.resolve': 'Resolved a safety alert',
   'user.create_admin': 'Added an admin', 'user.update': 'Changed an account', 'settings.domains': 'Changed verification domains',
   'notify.broadcast': 'Sent an announcement', 'collab.accepted': 'Accepted a research request', 'collab.declined': 'Declined a research request',
-  'auth.register': 'Student signed up', 'auth.password_reset': 'Password reset', 'auth.password_change': 'Password changed',
+  'auth.register': 'Student signed up', 'student.deleted': 'Deleted a student', 'student.registration': 'Changed a registration no.', 'college.logo': 'Updated the college logo', 'join.approve': 'Approved a join request', 'join.reject': 'Rejected a join request', 'auth.password_reset': 'Password reset', 'auth.password_change': 'Password changed',
 }
 
 // A short human detail for an audit row: the title it concerned, or how many people were messaged.

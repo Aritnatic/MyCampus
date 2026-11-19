@@ -54,6 +54,8 @@ export default function DiscoverDetail() {
 
         {isPerson && item.publicId ? <Text selectable style={styles.publicId}>MyCampus ID · {item.publicId}</Text> : null}
 
+        {isPerson ? <ContactPanel person={item} /> : null}
+
         {d.body ? <Panel title={isPerson ? 'About' : 'Overview'} icon="document-text-outline"><RichText text={d.body} /></Panel> : null}
 
         {d.email ? (
@@ -85,3 +87,35 @@ const styles = themed(() => StyleSheet.create({
   pad: { padding: 16, gap: 12 },
   publicId: { color: t.inkFaint, fontSize: 12, fontWeight: '600', textAlign: 'center', letterSpacing: 0.3 },
 }))
+
+// How to reach this person: their social links (anyone who can see the profile), and their phone / WhatsApp
+// only once you're connected and they chose to share it (the server leaves it out otherwise).
+const SOCIAL = [
+  ['instagram', 'logo-instagram', 'Instagram', (h) => `https://instagram.com/${h}`],
+  ['linkedin', 'logo-linkedin', 'LinkedIn', (h) => (/^https?:/i.test(h) ? h : `https://www.linkedin.com/in/${h}`)],
+  ['github', 'logo-github', 'GitHub', (h) => `https://github.com/${h}`],
+  ['twitter', 'logo-twitter', 'X', (h) => `https://x.com/${h}`],
+  ['website', 'globe-outline', 'Website', (h) => h],
+]
+
+function ContactPanel({ person }) {
+  const socials = SOCIAL.filter(([key]) => person.socials?.[key])
+  const c = person.contact ?? {}
+  const digits = (c.phone ?? '').replace(/[^0-9]/g, '')
+  if (!socials.length && !c.phone && !c.hiddenUntilConnected) return null
+  return (
+    <Panel title="Contact" icon="chatbubbles-outline" style={{ gap: 14 }}>
+      {c.phone ? (
+        <>
+          {c.whatsapp ? <InfoRow icon="logo-whatsapp" label="WhatsApp" value={`Message ${person.name.split(' ')[0]}`} onPress={() => Linking.openURL(`https://wa.me/${digits}`)} /> : null}
+          <InfoRow icon="call-outline" label="Phone" value={c.phone} onPress={() => Linking.openURL(`tel:${c.phone.replace(/[^0-9+]/g, '')}`)} />
+        </>
+      ) : c.hiddenUntilConnected ? (
+        <InfoRow icon="lock-closed-outline" label="Phone / WhatsApp" value="Shared with connections. Connect to see it." />
+      ) : null}
+      {socials.map(([key, icon, label, link]) => (
+        <InfoRow key={key} icon={icon} label={label} value={key === 'website' ? person.socials[key].replace(/^https?:\/\//i, '') : `@${person.socials[key]}`} onPress={() => Linking.openURL(link(person.socials[key]))} />
+      ))}
+    </Panel>
+  )
+}

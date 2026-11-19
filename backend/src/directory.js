@@ -29,7 +29,8 @@ export function connectionCounts() {
 // Pass `counts` (from connectionCounts) and/or an already-parsed `p` when building many cards.
 export function personView(row, unis = uniCache(), counts, p = JSON.parse(row.data)) {
   // The college's registration number is between the student and their college: never on a public card.
-  const { rollNumber, ...shown } = p // eslint-disable-line no-unused-vars
+  // A phone number goes only to people this person has connected with (see contactFor), never on a card.
+  const { rollNumber, contact, ...shown } = p // eslint-disable-line no-unused-vars
   return stripRanking({
     ...shown,
     id: row.id,
@@ -54,4 +55,17 @@ export function studentRows() {
     studentCache = { version, list: users.students().map((row) => ({ row, profile: JSON.parse(row.data) })) }
   }
   return studentCache.list
+}
+
+const connectedStmt = db.prepare("SELECT 1 FROM connections WHERE status = 'accepted' AND ((from_id = ? AND to_id = ?) OR (from_id = ? AND to_id = ?)) LIMIT 1")
+export const areConnected = (a, b) => !!connectedStmt.get(a, b, b, a)
+
+// The phone / WhatsApp number `viewer` may see on `row`'s profile: only if they're connected and the owner
+// chose to share it with connections. Otherwise nothing, plus whether connecting would reveal one.
+export function contactFor(viewer, row, p = JSON.parse(row.data)) {
+  const c = p.contact ?? {}
+  const shares = !!(c.phone && c.showPhone)
+  if (viewer.id === row.id) return { phone: c.phone ?? '', whatsapp: !!c.whatsapp, showPhone: !!c.showPhone }
+  if (shares && areConnected(viewer.id, row.id)) return { phone: c.phone, whatsapp: !!c.whatsapp }
+  return { hiddenUntilConnected: shares }
 }

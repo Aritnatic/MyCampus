@@ -3,7 +3,7 @@ import { requireAuth } from '../auth.js'
 import { canView } from '../access.js'
 import { audit, db, docs, newId, now, users } from '../db.js'
 import { HttpError, parse, wrap, z } from '../http.js'
-import { canSeePerson, isMentor, personView, uniCache } from '../directory.js'
+import { canSeePerson, isMentor, personView, uniCache , contactFor} from '../directory.js'
 import { notify } from '../notify.js'
 
 export const socialRoutes = Router()
@@ -16,9 +16,9 @@ const message = z.string().trim().max(500).optional()
 const nameOf = (row) => JSON.parse(row.data).name
 
 // ---------------- connections (peers & mentors) ----------------
-const present = (c, otherId, unis) => {
+const present = (c, otherId, unis, viewer) => {
   const row = users.byId(otherId)
-  return { id: c.id, kind: c.kind, status: c.status, message: c.message, createdAt: c.created_at, person: row ? personView(row, unis) : null }
+  return { id: c.id, kind: c.kind, status: c.status, message: c.message, createdAt: c.created_at, person: row ? personView(row, unis) : null, ...(row && viewer && c.status === 'accepted' && { contact: contactFor(viewer, row) }) }
 }
 
 socialRoutes.get('/connections', wrap(async (req, res) => {
@@ -27,7 +27,7 @@ socialRoutes.get('/connections', wrap(async (req, res) => {
   const out = { accepted: [], incoming: [], outgoing: [] }
   for (const c of rows) {
     const mine = c.from_id === req.user.id
-    const item = present(c, mine ? c.to_id : c.from_id, unis)
+    const item = present(c, mine ? c.to_id : c.from_id, unis, req.user)
     if (!item.person) continue
     if (c.status === 'accepted') out.accepted.push(item)
     else if (c.status === 'pending') (mine ? out.outgoing : out.incoming).push(item)

@@ -5,6 +5,7 @@ import { SafeAreaInsetsContext, useSafeAreaInsets } from 'react-native-safe-area
 import { activeAlerts, useAlerts } from '../alerts'
 import { AlertBanner } from '../components/AlertBanner'
 import { RealtimeBridge } from '../components/RealtimeBridge'
+import { UpdatePrompt } from '../components/UpdatePrompt'
 import { AuthProvider, useAuth } from '../context/AuthContext'
 import { ThemeProvider, useTheme } from '../context/ThemeContext'
 import { ToastProvider } from '../components/ui'
@@ -65,6 +66,7 @@ function RootStack() {
         </Stack>
       </SafeAreaInsetsContext.Provider>
       {user ? <RealtimeBridge /> : null}
+      <UpdatePrompt />
     </View>
   )
 }

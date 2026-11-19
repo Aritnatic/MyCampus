@@ -25,6 +25,8 @@ export default function StudentListPage() {
   const [busy, setBusy] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [deleting, setDeleting] = useState(null)
+  const [deleteName, setDeleteName] = useState('')
   const [editingReg, setEditingReg] = useState(null)
   const [regValue, setRegValue] = useState('')
   const [regError, setRegError] = useState('')
@@ -159,6 +161,9 @@ export default function StudentListPage() {
                           <button type="button" onClick={() => { setEditingReg(s); setRegValue(s.rollNumber || '') }} className="text-xs font-medium hover:underline mr-3" style={{ color: tokens.violetText }}>
                             Edit reg. no.<span className="sr-only"> for {s.name}</span>
                           </button>
+                          <button type="button" onClick={() => { setDeleting(s); setDeleteName('') }} className="text-xs font-medium hover:underline mr-3" style={{ color: tokens.red }}>
+                            Delete<span className="sr-only"> {s.name}</span>
+                          </button>
                           <button type="button" onClick={() => setToggling(s)} className="text-xs font-medium hover:underline" style={{ color: s.status === 'active' ? tokens.red : tokens.violetText }}>
                             {s.status === 'active' ? 'Suspend' : 'Reactivate'}<span className="sr-only"> {s.name}</span>
                           </button>
@@ -183,6 +188,29 @@ export default function StudentListPage() {
         )}
         </>)}
       </div>
+
+      {deleting && (
+        <Modal title={`Delete ${deleting.name}?`} onClose={() => setDeleting(null)} footer={<>
+          <Button variant="secondary" onClick={() => setDeleting(null)}>Cancel</Button>
+          <Button variant="dangerSolid" disabled={deleteName.trim().toLowerCase() !== deleting.name.trim().toLowerCase()} loading={busy} onClick={async () => {
+            setBusy(true)
+            try {
+              await request(`/admin/students/${deleting.id}`, { method: 'DELETE' })
+              toast.success(`${deleting.name}’s account was deleted.`, { title: 'Deleted' })
+              setDeleting(null); roster.reload()
+            } catch (err) { toast.error(err.message, { title: 'Could not delete' }) }
+            setBusy(false)
+          }}>Delete for good</Button>
+        </>}>
+          <div className="space-y-3 text-sm" style={{ color: tokens.inkSoft }}>
+            <p>This permanently deletes their account: their profile, shared notes, solo projects, connections and requests. <strong style={{ color: tokens.ink }}>It can’t be undone.</strong></p>
+            <p>To stop them signing in but keep everything, use <strong style={{ color: tokens.ink }}>Suspend</strong> instead.</p>
+            <Field label={`Type “${deleting.name}” to confirm`} htmlFor="delete-confirm">
+              <TextInput id="delete-confirm" value={deleteName} onChange={(e) => setDeleteName(e.target.value)} autoFocus autoComplete="off" />
+            </Field>
+          </div>
+        </Modal>
+      )}
 
       {editingReg && (
         <Modal title={`Registration no. for ${editingReg.name}`} onClose={() => { setEditingReg(null); setRegError('') }} footer={<>

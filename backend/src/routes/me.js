@@ -14,6 +14,8 @@ const tags = (max) => z.array(tag).max(max).transform((xs) => [...new Map(xs.map
 
 // Only these fields are user-editable. `.strict()` rejects anything else, so a client can't
 // set `verified`, `university`, `rating` and so on.
+const handle = z.union([z.literal(''), z.string().trim().transform((v) => v.replace(/^@/, '')).pipe(z.string().regex(/^[A-Za-z0-9._-]{1,40}$/, 'Use just the username, without spaces.'))])
+
 const profileBody = z.object({
   name: z.string().trim().min(2).max(80),
   bio: z.string().trim().max(500),
@@ -24,7 +26,17 @@ const profileBody = z.object({
   branch: z.string().trim().max(80),
   year: z.number().int().min(1).max(6),
   semester: z.number().int().min(1).max(12),
-  socials: z.object({ github: z.string().trim().max(60), linkedin: z.string().trim().max(60), twitter: z.string().trim().max(60) }).partial().strict(),
+  // Handles, not links (the app builds the link). Empty string clears one.
+  socials: z.object({
+    instagram: handle, linkedin: z.string().trim().max(100), github: handle, twitter: handle,
+    website: z.union([z.literal(''), z.string().trim().url('Enter a full web address, starting with https://').max(200).refine((u) => /^https?:\/\//i.test(u), 'Enter a full web address, starting with https://')]),
+  }).partial().strict(),
+  // A phone / WhatsApp number. Only people you've connected with ever see it, and only while showPhone is on.
+  contact: z.object({
+    phone: z.union([z.literal(''), z.string().trim().regex(/^\+?[0-9][0-9 ()-]{6,18}$/, 'Enter a phone number with its country code, e.g. +91 98765 43210')]),
+    whatsapp: z.boolean(),
+    showPhone: z.boolean(),
+  }).partial().strict(),
   mentor: z.object({ open: z.boolean(), topics: tags(10) }).strict(),
 }).partial().strict()
 
@@ -40,7 +52,11 @@ meRoutes.patch('/me', wrap(async (req, res) => {
   const isStudent = req.user.role === 'student'
   // Academic fields only make sense for campus students.
   if (!isStudent && ('branch' in patch || 'year' in patch || 'semester' in patch)) throw new HttpError(400, 'Only campus students have branch, year and semester.')
-  const next = { ...users.profile(req.user), ...patch }
+  const current = users.profile(req.user)
+  const next = { ...current, ...patch }
+  // Nested groups merge, so saving one social link doesn't wipe the others.
+  if (patch.socials) next.socials = { ...(current.socials ?? {}), ...patch.socials }
+  if (patch.contact) next.contact = { ...(current.contact ?? {}), ...patch.contact }
   if (patch.name) next.avatar = patch.name.split(/\s+/).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
   users.setProfile(req.user.id, next)
   res.json(stripRanking({ ...publicUser(users.byId(req.user.id)), connections: connectionCount(req.user.id) }))

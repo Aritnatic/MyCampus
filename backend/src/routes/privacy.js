@@ -44,6 +44,16 @@ privacyRoutes.delete('/me', wrap(async (req, res) => {
   if (me.role === 'admin') throw new HttpError(403, 'Admin accounts are removed by another superadmin. Ask them to suspend yours.')
   if (!(await verifyPassword(password, me.password_hash))) throw new HttpError(400, 'That password is incorrect.')
 
+  eraseAccount(me)
+  audit({ id: null, university: me.university }, 'account.deleted', null)
+  res.status(204).end()
+}))
+
+// Removes an account and everything only that person could vouch for (their notes; projects and startups where
+// they're the only member). Shared things survive: projects with other members pass to the next member.
+// Foreign keys cascade the rest: connections, join requests, registrations, notifications, devices, safety
+// responses, ratings. Used by "Delete my account" and by an admin deleting a student.
+export function eraseAccount(me) {
   db.exec('BEGIN')
   try {
     for (const note of docs.list('note').filter((n) => n.uploadedById === me.id)) {
@@ -72,6 +82,4 @@ privacyRoutes.delete('/me', wrap(async (req, res) => {
     db.exec('ROLLBACK')
     throw err
   }
-  audit({ id: null, university: me.university }, 'account.deleted', null)
-  res.status(204).end()
-}))
+}

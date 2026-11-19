@@ -6,6 +6,7 @@ import { config } from '../config.js'
 import { sendMail } from '../mailer.js'
 import { audit, collegeCard, db, newId, now, universities, users } from '../db.js'
 import { HttpError, parse, wrap, z } from '../http.js'
+import { eraseAccount } from './privacy.js'
 import { notify } from '../notify.js'
 
 // Joining a college without a college email address.
@@ -210,4 +211,15 @@ joinRoutes.post('/admin/join-requests/:id/reject', requireAuth, requirePermissio
   const uni = universities.get(row.university)
   notify([row.user_id], { type: 'join_rejected', title: `${uni.short} couldn’t confirm your request`, body: reason || 'Check your roll number and details, then ask again.', data: { requestId: row.id } })
   res.json({ id: row.id, status: 'rejected' })
+}))
+
+// Delete a student's account for good (their notes, solo projects, connections, requests and notifications go
+// with it). Only admins who manage students, only for their own college. Suspending is the reversible option.
+joinRoutes.delete('/admin/students/:id', requireAuth, requirePermission('users'), wrap(async (req, res) => {
+  const row = users.byId(req.params.id)
+  if (!row || row.role !== 'student' || row.university !== req.user.university) throw new HttpError(404, 'Student not found.')
+  const name = users.profile(row).name
+  eraseAccount(row)
+  audit(req.user, 'student.deleted', null, { name })
+  res.status(204).end()
 }))

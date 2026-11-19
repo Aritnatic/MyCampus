@@ -3,7 +3,7 @@ import { requireAuth } from '../auth.js'
 import { canView, DISCOVER, matchScore } from '../access.js'
 import { docs, studentsVersion, users } from '../db.js'
 import { HttpError, parse, wrap, z } from '../http.js'
-import { canSeePerson, connectionCounts, isMentor, personView, studentRows, uniCache, withUni } from '../directory.js'
+import { canSeePerson, connectionCounts, isMentor, personView, studentRows, uniCache, withUni , contactFor} from '../directory.js'
 import { search } from '../search.js'
 import { coverage, skillInText } from '../skills.js'
 import { viewDocs } from '../views.js'
@@ -63,7 +63,7 @@ discoverRoutes.get('/discover/:kind/:id', wrap(async (req, res) => {
   if (req.params.kind === 'people') {
     const row = users.byId(req.params.id)
     if (!row || !canSeePerson(req.user, row)) throw new HttpError(404, 'Not found.')
-    return res.json(personView(row, unis))
+    return res.json({ ...personView(row, unis), contact: contactFor(req.user, row) })
   }
   const doc = docs.get(spec.kind, req.params.id)
   const [view] = doc && canView(req.user, spec.kind, doc) ? viewDocs(spec.kind, [doc], req.user) : []
