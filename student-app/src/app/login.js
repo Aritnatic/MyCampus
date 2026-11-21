@@ -17,7 +17,7 @@ export default function Login() {
 
   const submit = async () => {
     const found = {}
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) found.email = 'Enter your college email.'
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) found.email = 'Enter the email you signed up with.'
     if (!password) found.password = 'Enter your password.'
     setFieldErrors(found)
     setError(null)
@@ -33,7 +33,7 @@ export default function Login() {
   return (
     <AuthShell
       title="Welcome back"
-      subtitle="Sign in with your college email to see your campus."
+      subtitle="Sign in to see your campus, people and opportunities."
       footer={(
         <>
           <Link href="/forgot" style={{ color: t.violetText, fontWeight: '600' }}>Forgot password?</Link>
@@ -41,7 +41,7 @@ export default function Login() {
         </>
       )}
     >
-      <Field label="Email" value={email} onChangeText={setEmail} placeholder="you@college.edu.in" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="email" error={fieldErrors.email} />
+      <Field label="Email" value={email} onChangeText={setEmail} placeholder="Your email address" autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="username" autoComplete="email" error={fieldErrors.email} />
       <Field label="Password" value={password} onChangeText={setPassword} secure placeholder="Your password" onSubmitEditing={submit} textContentType="password" autoComplete="password" error={fieldErrors.password} />
       {needsVerify ? (
         <Text style={{ color: t.red, fontSize: 13 }} onPress={() => router.push({ pathname: '/verify', params: { email } })}>
